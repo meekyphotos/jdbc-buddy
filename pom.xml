@@ -6,7 +6,7 @@
 
   <artifactId>jdbc-buddy</artifactId>
   <groupId>com.experive</groupId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0.0</version>
   <packaging>jar</packaging>
 
   <name>jdbc-buddy</name>
@@ -215,5 +215,11 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
+  <distributionManagement>
+    <repository>
+      <id>github</id>
+      <name>GitHub meekyphotos Apache Maven Packages</name>
+      <url>https://maven.pkg.github.com/meekyphotos/jdbc-buddy</url>
+    </repository>
+  </distributionManagement>
 </project>
