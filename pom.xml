@@ -6,7 +6,7 @@
 
   <artifactId>jdbc-buddy</artifactId>
   <groupId>com.experive</groupId>
-  <version>1.0.1-SNAPSHOT</version>
+  <version>1.0.1</version>
   <packaging>jar</packaging>
 
   <name>jdbc-buddy</name>
@@ -155,7 +155,7 @@
       <version>1.4.200</version>
       <scope>test</scope>
     </dependency>
-   
+
     <dependency>
       <groupId>com.google.truth</groupId>
       <artifactId>truth</artifactId>
