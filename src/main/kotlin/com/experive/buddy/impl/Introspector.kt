@@ -79,14 +79,7 @@ object Introspector {
   private val cache = HashMap<Class<*>, TableDetails<*>>()
   fun <T> analyze(java: Class<T>): TableDetails<T> {
     return cache.computeIfAbsent(java) {
-      val name: String = if (java.isAnnotationPresent(Table::class.java)) {
-        val table = java.getAnnotation(Table::class.java)
-        table.value.ifBlank {
-          normalizeName(java.simpleName.substringAfterLast('.'))
-        }
-      } else {
-        normalizeName(java.simpleName.substringAfterLast('.'))
-      }
+      val name: String = normalizeTableName(java)
       val fields = java.declaredFields
         .filter { !Modifier.isTransient(it.modifiers) }
       val getter = java.declaredMethods
@@ -120,6 +113,15 @@ object Introspector {
     } as TableDetails<T>
   }
 
+  private fun <T> normalizeTableName(java: Class<T>) = if (java.isAnnotationPresent(Table::class.java)) {
+    val table = java.getAnnotation(Table::class.java)
+    table.value.ifBlank {
+      normalizeName(java.simpleName.substringAfterLast('.'))
+    }
+  } else {
+    normalizeName(java.simpleName.substringAfterLast('.'))
+  }
+
   private fun build(column: Column?, field: Field, fieldName: String, isIdentifier: Boolean, isGenerated: Boolean): ColumnDetails {
     return if (column != null) {
       ColumnDetails(
@@ -148,10 +150,7 @@ object Introspector {
         index == 0 && c == 'i' -> {
           isGetter = false
         }
-        index == 1 -> {
-        }
-        index == 2 && isGetter -> {
-        }
+        index == 1 || index == 2 && isGetter -> continue
         firstActual -> {
           firstActual = false
           out.append(c.lowercaseChar())
