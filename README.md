@@ -26,8 +26,22 @@ While you can use annotated entities to enable some reflection magic, this is no
 # Getting started
 
 ## Add dependency
+This package is hosted here on github.com, there add to your repositories section the following:
+```xml
+  <repository>
+    <id>github</id>
+    <url>https://maven.pkg.github.com/meekyphotos/*</url>
+  </repository>
+```
+Then in your dependencies:
 
-TODO
+```xml
+<dependency>
+  <groupId>com.experive</groupId>
+  <artifactId>jdbc-buddy</artifactId>
+  <version>1.0.0</version>
+</dependency>
+```
 
 ## How to query
 
