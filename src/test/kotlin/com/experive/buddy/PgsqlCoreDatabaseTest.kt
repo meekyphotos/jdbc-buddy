@@ -84,12 +84,12 @@ internal class PgsqlCoreDatabaseTest : DatabaseCoreQueries() {
         TestJson(null, JSONObject(mapOf("a" to "5")), null),
       )
     ).execute()
-    val jsonProp = jsonTable.column(TestJson::map)
+    val jsonProp = jsonTable.column<JSONObject>("map")!!
     val res = underTest.selectFrom(jsonTable)
       .where(jsonProp.get<String>("a").eq("3"))
       .fetchInto().toList()
 
-    assertThat(res.map { it.map.getString("a") }).isEqualTo(arrayListOf("3", "3"))
+    assertThat(res.map { it.map!!.getString("a") }).isEqualTo(arrayListOf("3", "3"))
   }
 }
 

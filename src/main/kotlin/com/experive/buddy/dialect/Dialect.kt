@@ -24,7 +24,7 @@ interface Dialect {
       return when (name) {
         "H2" -> H2Dialect()
         "PostgreSQL" -> PostgresDialect()
-        else -> DefaultDialect()
+        else -> object : Dialect {}
       }
     }
   }

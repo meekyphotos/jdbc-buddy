@@ -4,6 +4,7 @@ import com.experive.buddy.exceptions.NoDataFoundException
 import com.experive.buddy.exceptions.TooManyRowsException
 import com.experive.buddy.predicates.Predicate
 import com.google.common.truth.Truth.assertThat
+import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -460,7 +461,29 @@ abstract class DatabaseCoreQueries {
       .where(idColumn eq id)
       .fetchSingleInto(jsonTable.enclosingType)
 
-    assertThat(json.map.toMap()).isEqualTo(JSONObject().put("a", "b").toMap())
+    assertThat(json.map!!.toMap()).isEqualTo(JSONObject().put("a", "b").toMap())
+  }
+
+  @Test
+  internal fun standardFetch() {
+    val count = underTest.fetch("select count(*) from test_entity").map { it.into(Long::class.java) }.toList().firstOrNull()
+    assertThat(count).isEqualTo(8)
+  }
+
+  @Test
+  internal fun testJsonSupport_usingArrays() {
+
+    val column = jsonTable.column(TestJson::relation)
+    val idColumn = jsonTable.column(TestJson::id)
+    val id = underTest.insertInto(jsonTable).set(column, JSONArray(arrayListOf("a", "b"))).returning(idColumn).fetchSingleInto(Int::class.java)
+
+    val json = underTest
+      .select()
+      .from(jsonTable)
+      .where(idColumn eq id)
+      .fetchSingleInto(jsonTable.enclosingType)
+
+    assertThat(json.relation!!.toList()).isEqualTo(JSONArray().put("a").put("b").toList())
   }
 
   companion object {

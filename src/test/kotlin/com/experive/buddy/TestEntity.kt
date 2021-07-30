@@ -13,10 +13,11 @@ data class TestEntity(
   var booleanField: Boolean? = false
 )
 
+@Table
 data class TestJson(
   @Id
   var id: Int? = null,
-  var map: JSONObject,
+  var map: JSONObject?,
   var relation: JSONArray?
 )
 
