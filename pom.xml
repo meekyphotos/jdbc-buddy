@@ -212,7 +212,7 @@
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
       <version>42.2.23</version>
-      <scope>optional</scope>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
   <distributionManagement>
