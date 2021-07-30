@@ -6,8 +6,8 @@ import com.experive.buddy.predicates.Predicate
 class OperatorOnlyPredicate<T>(private val expression: Expression<T>, private val sign: String) : Predicate {
   override fun collectValues(): List<Any?> = emptyList()
 
-  override fun toSqlFragment(): String {
-    return "${expression.toSqlFragment()} $sign"
+  override fun toQualifiedSqlFragment(): String {
+    return "${expression.toQualifiedSqlFragment()} $sign"
   }
 
   override fun toString(): String {

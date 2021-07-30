@@ -8,8 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate
 
 class DeleteQueryBuilder<R>(
   private val table: Table<R>,
-  private val template: JdbcTemplate,
-  dbName: String
+  private val template: JdbcTemplate
 ) : DeleteWhereStep<R> {
   private val predicates = ArrayList<Predicate>()
   override fun where(vararg predicates: Predicate): Delete<R> {
@@ -32,7 +31,7 @@ class DeleteQueryBuilder<R>(
     sb.append("DELETE FROM ${table.name()} ${table.alias}")
     if (predicates.isNotEmpty()) {
       sb.append(" WHERE ")
-      predicates.joinTo(sb, " AND ") { it.toSqlFragment() }
+      predicates.joinTo(sb, " AND ") { it.toQualifiedSqlFragment() }
     }
     return sb.toString()
   }

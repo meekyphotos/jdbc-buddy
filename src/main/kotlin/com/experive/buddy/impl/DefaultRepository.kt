@@ -25,15 +25,19 @@ class DefaultRepository(private val template: JdbcTemplate) : Repository {
     return InsertQueryBuilder(entityClass, template, dbName)
   }
 
-  override fun <R> select(vararg selectFieldOrAsterisk: Expression<*>): SelectFromStep<R> {
-    return SelectQueryBuilder(template, dbName, *selectFieldOrAsterisk)
+  override fun select(vararg selectFieldOrAsterisk: Expression<*>): SelectFromStep<Record> {
+    return SelectQueryBuilder(template, Record::class.java, *selectFieldOrAsterisk)
+  }
+
+  override fun <R> selectForEntity(entityClass: Class<R>, vararg selectFieldOrAsterisk: Expression<*>): SelectFromStep<R> {
+    return SelectQueryBuilder(template, entityClass, *selectFieldOrAsterisk)
   }
 
   override fun <R> update(entityClass: Table<R>): UpdateSetStep<R> {
-    return UpdateQueryBuilder(entityClass, template, dbName)
+    return UpdateQueryBuilder(entityClass, template)
   }
 
   override fun <R> deleteFrom(entityClass: Table<R>): DeleteWhereStep<R> {
-    return DeleteQueryBuilder(entityClass, template, dbName)
+    return DeleteQueryBuilder(entityClass, template)
   }
 }

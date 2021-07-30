@@ -57,7 +57,6 @@ internal class InsertQueryBuilder<R>(
       sb.append(select!!.toSQL())
     } else {
       if (records.isEmpty()) {
-        check(values.isNotEmpty())
         sb.append("VALUES (")
         values.joinTo(sb, ", ") { "?" }
         sb.append(")")
@@ -95,6 +94,7 @@ internal class InsertQueryBuilder<R>(
   override fun <T> set(tableField: TableField<R, T>, value: T): InsertMoreStep<R> {
     check(select == null) { "Cannot use set method when using select insert" }
     check(records.isEmpty()) { "Cannot use set method when using multiple records" }
+    check(columns.size == values.size) { "Cannot use set after calling columns" }
     check(!columns.contains(tableField)) { "Cannot set same field multiple times" }
     columns.add(tableField)
     values.add(value)
@@ -102,7 +102,7 @@ internal class InsertQueryBuilder<R>(
   }
 
   override fun columns(vararg tableFields: TableField<R, *>): InsertValuesStep<R> {
-    check(values.isEmpty() || columns.isEmpty()) { "Columns are specified automatically when you use set(Field, value)" }
+    check(values.isEmpty()) { "Columns are specified automatically when you use set(Field, value)" }
     columns.addAll(tableFields)
     return this
   }
@@ -110,6 +110,7 @@ internal class InsertQueryBuilder<R>(
   override fun values(vararg values: Any?): InsertValuesStep<R> {
     check(select == null) { "Cannot specify values when using select insert" }
     check(this.values.isEmpty()) { "Cannot mix and match set(Field, value) with values" }
+    check(this.columns.size == values.size) { "Specified values don't match the number of columns" }
     records.add(values)
     return this
   }
@@ -128,12 +129,19 @@ internal class InsertQueryBuilder<R>(
   override fun fetchSingleInto(): R = fetchSingle().into(entityClass.enclosingType)
 
   override fun fetch(): QueryResult<Record> {
+    check(returning) { "Fetch is only allowed when using returning" }
     return if (supportsReturning()) {
       StreamQueryResult(template.queryForStream(toSQL(), RecordMapper(), *collectParameters().toTypedArray()))
     } else {
       val keys = GeneratedKeyHolder()
       template.update(PreparedStatementCreator {
-        val psmt = it.prepareStatement(toSQL(), arrayOf(entityClass.idColumn<Any?>()!!.name))
+        val returningColumns = ArrayList<String>()
+        if (returningFields.contains(Asterisk())) {
+          returningColumns.add(entityClass.idColumn<Any?>()!!.toSqlFragment())
+        } else {
+          returningColumns.addAll(returningFields.map { f -> f.toSqlFragment() })
+        }
+        val psmt = it.prepareStatement(toSQL(), returningColumns.toTypedArray())
         collectParameters().forEachIndexed { index, any -> psmt.setObject(index + 1, any) }
         psmt
       }, keys)

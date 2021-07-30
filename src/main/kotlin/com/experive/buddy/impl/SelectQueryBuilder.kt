@@ -8,11 +8,11 @@ import org.springframework.jdbc.core.JdbcTemplate
 
 internal class SelectQueryBuilder<R>(
   private val template: JdbcTemplate,
-  dbName: String,
+  private val recordClass: Class<R>,
   private vararg val selectFieldOrAsterisk: Expression<*>
 ) : SelectFromStep<R>, SelectWhereStep<R>, SelectOffsetStep<R>, SelectJoinStep<R> {
   internal val joins = ArrayList<JoinDetails>()
-  private lateinit var root: Table<R>
+  private lateinit var root: Table<*>
 
   private var offset: Int? = null
   private var limit: Int? = null
@@ -93,11 +93,11 @@ internal class SelectQueryBuilder<R>(
     return StreamQueryResult(template.queryForStream(toSQL(), RecordMapper(), *collectParameters().toTypedArray()))
   }
 
-  override fun fetchInto(): QueryResult<R> = fetch().map { it.into(root.enclosingType) }
+  override fun fetchInto(): QueryResult<R> = fetch().map { it.into(recordClass) }
 
-  override fun fetchOneInto(): R? = fetchOne()?.into(root.enclosingType)
+  override fun fetchOneInto(): R? = fetchOne()?.into(recordClass)
 
-  override fun fetchSingleInto(): R = fetchSingle().into(root.enclosingType)
+  override fun fetchSingleInto(): R = fetchSingle().into(recordClass)
 
   override fun toSQL(): String {
     val hasJoins = joins.isNotEmpty()
@@ -106,7 +106,7 @@ internal class SelectQueryBuilder<R>(
     if (selectFieldOrAsterisk.isEmpty()) {
       sb.append(root.alias + ".*")
     } else {
-      selectFieldOrAsterisk.joinTo(sb, ", ") { it.toSqlFragment() }
+      selectFieldOrAsterisk.joinTo(sb, ", ") { it.toQualifiedSqlFragment() }
     }
     sb.append(" FROM ${root.name()} " + root.alias)
     if (hasJoins) {
@@ -116,24 +116,24 @@ internal class SelectQueryBuilder<R>(
           JoinType.JOIN -> "JOIN "
           JoinType.LEFT -> "LEFT JOIN "
           JoinType.RIGHT -> "RIGHT JOIN "
-        } + it.table.name() + " " + it.table.alias + " ON " + it.predicate.toSqlFragment()
+        } + it.table.name() + " " + it.table.alias + " ON " + it.predicate.toQualifiedSqlFragment()
       }
     }
     if (predicates.isNotEmpty()) {
       sb.append(" WHERE ")
-      predicates.joinTo(sb, " and ") { it.toSqlFragment() }
+      predicates.joinTo(sb, " and ") { it.toQualifiedSqlFragment() }
     }
     if (groupBy.isNotEmpty()) {
       sb.append(" GROUP BY ")
-      groupBy.joinTo(sb, ", ") { it.toSqlFragment() }
+      groupBy.joinTo(sb, ", ") { it.toQualifiedSqlFragment() }
     }
     if (havingPredicates.isNotEmpty()) {
       sb.append(" HAVING ")
-      havingPredicates.joinTo(sb, " and ") { it.toSqlFragment() }
+      havingPredicates.joinTo(sb, " and ") { it.toQualifiedSqlFragment() }
     }
     if (orderBy.isNotEmpty()) {
       sb.append(" ORDER BY ")
-      orderBy.joinTo(sb, ", ") { it.toSqlFragment() }
+      orderBy.joinTo(sb, ", ") { it.toQualifiedSqlFragment() }
     }
     if (limit != null) {
       sb.append(" LIMIT $limit")
@@ -153,7 +153,7 @@ internal class SelectQueryBuilder<R>(
     return out
   }
 
-  override fun from(table: Table<R>): SelectJoinStep<R> {
+  override fun from(table: Table<*>): SelectJoinStep<R> {
     this.root = table
     return this
   }

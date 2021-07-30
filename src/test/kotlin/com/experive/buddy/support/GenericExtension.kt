@@ -1,14 +1,17 @@
 package com.experive.buddy.support
 
 
-import org.junit.jupiter.api.extension.*
+import org.junit.jupiter.api.extension.AfterEachCallback
+import org.junit.jupiter.api.extension.BeforeAllCallback
+import org.junit.jupiter.api.extension.BeforeEachCallback
+import org.junit.jupiter.api.extension.ExtensionContext
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.support.JdbcTransactionManager
 import org.springframework.transaction.TransactionDefinition
 import org.springframework.transaction.TransactionStatus
 import javax.sql.DataSource
 
-abstract class GenericExtension : BeforeEachCallback, AfterEachCallback, BeforeAllCallback, AfterAllCallback {
+abstract class GenericExtension : BeforeEachCallback, AfterEachCallback, BeforeAllCallback {
   private lateinit var jdbcTemplate: JdbcTemplate
   private lateinit var txManager: JdbcTransactionManager
   private lateinit var tx: TransactionStatus
@@ -35,7 +38,5 @@ abstract class GenericExtension : BeforeEachCallback, AfterEachCallback, BeforeA
     jdbcTemplate = JdbcTemplate(dataSource)
   }
 
-  override fun afterAll(context: ExtensionContext) {
-    println("After all")
-  }
+
 }

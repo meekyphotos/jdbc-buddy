@@ -1,10 +1,10 @@
 package com.experive.buddy
 
-data class SQLFunction<I, O>(val fnName: String, val value: Expression<I>) : Expression<O> {
+class SQLFunction<I, O>(private val fnName: String, private vararg val value: Expression<I>) : Expression<O> {
 
-  override fun collectValues(): List<Any?> = value.collectValues()
+  override fun collectValues(): List<Any?> = value.flatMap { it.collectValues() }
 
-  override fun toSqlFragment(): String = "$fnName(${value.toSqlFragment()})"
+  override fun toQualifiedSqlFragment(): String = "$fnName(${value.joinToString(", ") { it.toQualifiedSqlFragment() }})"
   override fun toString(): String {
     return "$fnName($value)"
   }

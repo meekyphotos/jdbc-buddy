@@ -1,5 +1,5 @@
 package com.experive.buddy
 
 data class Order(val tableField: TableField<*, *>, val direction: Direction) : QueryPart {
-  override fun toSqlFragment(): String = tableField.toSqlFragment() + " " + direction.name + " NULLS LAST"
+  override fun toQualifiedSqlFragment(): String = tableField.toQualifiedSqlFragment() + " " + direction.name + " NULLS LAST"
 }

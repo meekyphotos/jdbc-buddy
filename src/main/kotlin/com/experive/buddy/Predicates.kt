@@ -7,7 +7,8 @@ import com.experive.buddy.predicates.Predicate
 
 fun lower(value: Expression<String?>): Expression<String?> = SQLFunction("lower", value)
 fun upper(value: Expression<String?>): Expression<String?> = SQLFunction("upper", value)
-fun count(): Expression<String> = SQLFunction("count", Asterisk())
+fun count(): Expression<Long> = SQLFunction("count", Asterisk())
+fun concat(value: Expression<String?>, other: Expression<String?>): Expression<String> = SQLFunction("concat", value, other)
 
 fun Expression<String?>.like(value: Expression<String?>): Predicate = OperatorPredicate(this, "like", value)
 fun Expression<String?>.ilike(value: Expression<String?>): Predicate = OperatorPredicate(lower(this), "like", lower(value))

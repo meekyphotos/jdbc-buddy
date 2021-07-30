@@ -24,7 +24,7 @@ interface SelectJoinStep<R> : SelectWhereStep<R> {
 }
 
 interface SelectFromStep<R> {
-  fun from(table: Table<R>): SelectJoinStep<R>
+  fun from(table: Table<*>): SelectJoinStep<R>
 }
 
 interface SelectOffsetStep<R> : Select<R> {

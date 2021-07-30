@@ -18,6 +18,7 @@ class Record(private val data: Map<String, Any>) {
 
   @Suppress("UNCHECKED_CAST")
   fun <T> into(entityClass: Class<T>): T {
+    if (entityClass == Record::class.java) return this as T
     if (Primitives.isWrapperType(entityClass) || entityClass.isPrimitive) {
       return data.values.firstOrNull() as T
     }

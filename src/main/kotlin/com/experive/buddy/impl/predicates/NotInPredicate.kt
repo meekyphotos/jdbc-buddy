@@ -6,8 +6,8 @@ import com.experive.buddy.predicates.Predicate
 class NotInPredicate<T>(private val expression: Expression<T>, private val valueExpression: List<Expression<T>>) : Predicate {
   override fun collectValues(): List<Any?> = valueExpression.flatMap { it.collectValues() }
 
-  override fun toSqlFragment(): String {
-    return "${expression.toSqlFragment()} not in (${valueExpression.joinToString(", ") { it.toSqlFragment() }})"
+  override fun toQualifiedSqlFragment(): String {
+    return "${expression.toQualifiedSqlFragment()} not in (${valueExpression.joinToString(", ") { it.toQualifiedSqlFragment() }})"
   }
 
   override fun toString(): String {

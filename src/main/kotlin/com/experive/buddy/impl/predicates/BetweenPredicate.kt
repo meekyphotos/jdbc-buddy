@@ -10,8 +10,8 @@ class BetweenPredicate<T>(
 ) : Predicate {
   override fun collectValues(): List<Any?> = arrayOf(lower, upper).flatMap { it.collectValues() }
 
-  override fun toSqlFragment(): String {
-    return "${expression.toSqlFragment()} BETWEEN ${lower.toSqlFragment()} AND ${upper.toSqlFragment()}"
+  override fun toQualifiedSqlFragment(): String {
+    return "${expression.toQualifiedSqlFragment()} BETWEEN ${lower.toQualifiedSqlFragment()} AND ${upper.toQualifiedSqlFragment()}"
   }
 
   override fun toString(): String {

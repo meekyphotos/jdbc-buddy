@@ -2,13 +2,14 @@ package com.experive.buddy.support
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import org.junit.jupiter.api.extension.AfterAllCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
 import javax.sql.DataSource
 
 
-class BuddyPostgresExtension : GenericExtension() {
+class BuddyPostgresExtension : GenericExtension(), AfterAllCallback {
   private val container = PostgreSQLContainer<Nothing>(DockerImageName.parse("postgres:latest"))
   override fun dataSource(): DataSource {
     val config = HikariConfig()
@@ -34,7 +35,6 @@ class BuddyPostgresExtension : GenericExtension() {
   }
 
   override fun afterAll(context: ExtensionContext) {
-    super.afterAll(context)
     container.stop()
   }
 }

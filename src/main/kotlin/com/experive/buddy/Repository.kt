@@ -14,9 +14,10 @@ interface Repository {
   fun fetch(sql: String, vararg args: Any?): QueryResult<Record>
 
   fun <R> insertInto(entityClass: Table<R>): InsertSetStep<R>
-  fun <R> selectFrom(entityClass: Table<R>): SelectWhereStep<R> = select<R>(entityClass.asterisk()).from(entityClass)
-  fun <R> selectCount(entityClass: Table<R>): SelectWhereStep<R> = select<R>(count()).from(entityClass)
-  fun <R> select(vararg selectFieldOrAsterisk: Expression<*>): SelectFromStep<R>
+  fun <R> selectFrom(entityClass: Table<R>): SelectWhereStep<R> = selectForEntity(entityClass.enclosingType, entityClass.asterisk()).from(entityClass)
+  fun <R> selectCount(entityClass: Table<R>): SelectWhereStep<R> = selectForEntity(entityClass.enclosingType, count()).from(entityClass)
+  fun select(vararg selectFieldOrAsterisk: Expression<*>): SelectFromStep<Record>
+  fun <R> selectForEntity(entityClass: Class<R>, vararg selectFieldOrAsterisk: Expression<*>): SelectFromStep<R>
   fun <R> update(entityClass: Table<R>): UpdateSetStep<R>
   fun <R> delete(entityClass: Table<R>): DeleteWhereStep<R> = deleteFrom(entityClass)
   fun <R> deleteFrom(entityClass: Table<R>): DeleteWhereStep<R>

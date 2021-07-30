@@ -10,8 +10,7 @@ import org.springframework.jdbc.core.JdbcTemplate
 
 internal class UpdateQueryBuilder<R>(
   private val table: Table<R>,
-  private val template: JdbcTemplate,
-  dbName: String
+  private val template: JdbcTemplate
 ) : UpdateSetStep<R>, UpdateSetMoreStep<R>, Update<R> {
   private val columns = ArrayList<TableField<R, *>>()
   private val values = ArrayList<Any?>()
@@ -35,7 +34,7 @@ internal class UpdateQueryBuilder<R>(
     columns.joinTo(sb, ", ") { "${it.name}=?" }
     if (predicates.isNotEmpty()) {
       sb.append(" WHERE ")
-      predicates.joinTo(sb, " AND ") { it.toSqlFragment() }
+      predicates.joinTo(sb, " AND ") { it.toQualifiedSqlFragment() }
     }
     return sb.toString()
   }

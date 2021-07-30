@@ -6,7 +6,8 @@ data class TableField<R, T>(private val table: Table<R>, private val property: C
   val name: String
     get() = property.name
 
-  override fun toSqlFragment(): String = table.alias + "." + name
+  override fun toQualifiedSqlFragment(): String = table.alias + "." + name
+  override fun toSqlFragment(): String = name
 
   override fun toString(): String {
     return name

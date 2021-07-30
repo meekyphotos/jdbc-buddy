@@ -41,7 +41,7 @@ abstract class DatabaseCoreQueries {
   @DisplayName("Join entities: various queries")
   internal fun shouldReturnExpectedResultsUsingJoin(predicate: Predicate?, names: List<String>) {
     val builder = underTest
-      .select<TestEntity>()
+      .selectForEntity(table.enclosingType)
       .from(table).join(testRelationTable, trTestId)
     if (predicate != null) {
       builder.where(predicate and trActive.isTrue())
@@ -59,14 +59,14 @@ abstract class DatabaseCoreQueries {
   @DisplayName("Left join entities: various queries")
   internal fun shouldReturnExpectedResultsUsingLeftJoin(predicate: Predicate?, names: List<String>) {
     val builder = underTest
-      .select<TestEntity>()
+      .select()
       .from(table).leftJoin(testRelationTable, trTestId)
     if (predicate != null) {
       builder.where(predicate, (trActive.isTrue() or trActive.isNull()))
     } else {
       builder.where(trActive.isTrue() or trActive.isNull())
     }
-    val record = builder.fetchInto()
+    val record = builder.fetchInto(TestEntity::class.java)
     val results = record.toList()
     assertThat(results).hasSize(names.size)
     assertThat(results.map { it.name }).containsAll(names)
@@ -77,7 +77,7 @@ abstract class DatabaseCoreQueries {
   @DisplayName("Right join entities: various queries")
   internal fun shouldReturnExpectedResultsUsingRightJoin(predicate: Predicate?, names: List<String>) {
     val builder = underTest
-      .select<TestEntity>()
+      .selectForEntity(table.enclosingType)
       .from(table).rightJoin(testRelationTable, trTestId)
     if (predicate != null) {
       builder.where(predicate, trActive.isTrue())
@@ -126,7 +126,7 @@ abstract class DatabaseCoreQueries {
   @DisplayName("Count: various queries")
   internal fun shouldReturnExpectedCount(predicate: Predicate?, count: Int) {
     val builder = underTest
-      .select<TestEntity>(count())
+      .select(count())
       .from(table)
     if (predicate != null) {
       builder.where(predicate)
@@ -138,10 +138,31 @@ abstract class DatabaseCoreQueries {
   }
 
   @Test
-  @DisplayName("Find one: should return empty optional when id does not exist")
+  @DisplayName("Find one: should return null when id does not exist")
   internal fun shouldReturnEmptyOptionalWhenIdDoesNotExist() {
     val result = underTest.byId(6545132132L, table).fetchOneInto()
     assertThat(result).isNull()
+  }
+
+  @Test
+  @DisplayName("Find one: should return null when id does not exist even if mapped")
+  internal fun shouldReturnNullWhenIdDoesNotExistAndMapped() {
+    val result = underTest.byId(6545132132L, table).fetchOneInto(TestEntity::class.java)
+    assertThat(result).isNull()
+  }
+
+  @Test
+  @DisplayName("Find one: should return the entity when exists")
+  internal fun fetchone_shouldReturnSomethingWhenIdExists() {
+    val result = underTest.byId(mikuId, table).fetchOneInto()
+    assertThat(result).isNotNull
+  }
+
+  @Test
+  @DisplayName("Select supports forEach")
+  internal fun shouldAllowToUseForEach() {
+    val result = underTest.selectFrom(table).where(fieldName eq 27).map { it.name }
+    assertThat(result).isEqualTo(listOf("Miku", "Mendel", null))
   }
 
   @Test
@@ -244,7 +265,7 @@ abstract class DatabaseCoreQueries {
   internal fun shouldReturnBooleanWhenUsingPredicateAsSelection() {
     val name = table.column<String>("name")!!
     val record = underTest
-      .select<TestEntity>(name.eq("Michele"))
+      .select(name.eq("Michele"))
       .from(table)
       .where(name.`in`("Miguél", "Michele"))
       .fetch()
@@ -413,7 +434,7 @@ abstract class DatabaseCoreQueries {
   @DisplayName("Select: test aliasing")
   internal fun testAliasing() {
     val target = AliasedTestEntity::class.java
-    val result = underTest.select<TestEntity>(name.`as`("user_name"), fieldName.`as`("login_count"))
+    val result = underTest.select(name.`as`("user_name"), fieldName.`as`("login_count"))
       .from(table)
       .where(fieldName.eq(27) and name.isNotNull())
       .fetchInto(target)
