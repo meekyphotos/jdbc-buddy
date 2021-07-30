@@ -19,7 +19,7 @@ abstract class DatabaseCoreQueries {
   var mendelId: Int = 0
 
   lateinit var txManager: JdbcTemplate
-  lateinit var underTest: Repository
+  lateinit var underTest: Database
 
   @ParameterizedTest
   @MethodSource("queries")
@@ -449,10 +449,10 @@ abstract class DatabaseCoreQueries {
 
   companion object {
     @JvmStatic
-    protected val table = TestEntity::class.java.table()
+    protected val table = TestEntity::class.table()
 
     @JvmStatic
-    protected val testRelationTable = TestRelation::class.java.table()
+    protected val testRelationTable = TestRelation::class.table()
 
     @JvmStatic
     protected val trId = testRelationTable.column(TestRelation::id)

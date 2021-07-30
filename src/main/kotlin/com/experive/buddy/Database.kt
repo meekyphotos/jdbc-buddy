@@ -1,10 +1,12 @@
 package com.experive.buddy
 
+import com.experive.buddy.impl.DefaultRepository
 import com.experive.buddy.impl.Introspector
 import com.experive.buddy.steps.*
+import org.springframework.jdbc.core.JdbcTemplate
 
 @Suppress("UNCHECKED_CAST")
-interface Repository {
+interface Database {
   fun <E, I> byId(id: I, entityClass: Table<E>): Select<E> {
     return selectFrom(entityClass).where(entityClass.idColumn<I>()!!.eq(id))
   }
@@ -67,6 +69,10 @@ interface Repository {
       insert.values(*insertableColumns.map { it.getValue(entity) }.toTypedArray())
     }
     return insert
+  }
+
+  companion object {
+    fun using(template: JdbcTemplate) = DefaultRepository(template)
   }
 }
 

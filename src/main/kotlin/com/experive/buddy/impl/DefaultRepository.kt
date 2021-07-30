@@ -8,7 +8,7 @@ import com.experive.buddy.steps.SelectFromStep
 import com.experive.buddy.steps.UpdateSetStep
 import org.springframework.jdbc.core.JdbcTemplate
 
-class DefaultRepository(private val template: JdbcTemplate) : Repository {
+class DefaultRepository(private val template: JdbcTemplate) : Database {
   private val dbName: String = template.dataSource!!.connection.use {
     it.metaData.databaseProductName
   }

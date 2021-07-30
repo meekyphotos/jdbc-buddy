@@ -1,6 +1,5 @@
 package com.experive.buddy
 
-import com.experive.buddy.impl.DefaultRepository
 import com.experive.buddy.support.BuddyPostgresExtension
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -8,10 +7,10 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(BuddyPostgresExtension::class)
-internal class PgsqlCoreRepositoryTest : DatabaseCoreQueries() {
+internal class PgsqlCoreDatabaseTest : DatabaseCoreQueries() {
   @BeforeEach
   internal fun setUp() {
-    underTest = DefaultRepository(txManager)
+    underTest = Database.using(txManager)
 
     underTest.execute("create table if not exists test_entity (id serial primary key, name text, field_name int, boolean_field boolean)")
     underTest.execute("create table if not exists test_relation (id serial primary key, test_id int, active boolean)")

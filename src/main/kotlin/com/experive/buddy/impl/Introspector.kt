@@ -74,7 +74,7 @@ internal fun read(el: AnnotatedElement): Metadata {
   )
 }
 
-object Introspector {
+internal object Introspector {
   val classCounter = AtomicLong()
   private val cache = HashMap<Class<*>, TableDetails<*>>()
   fun <T> analyze(java: Class<T>): TableDetails<T> {

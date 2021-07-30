@@ -4,7 +4,7 @@ import com.experive.buddy.Record
 import org.springframework.jdbc.core.RowMapper
 import java.sql.ResultSet
 
-class RecordMapper : RowMapper<Record> {
+internal class RecordMapper : RowMapper<Record> {
   private lateinit var columns: List<String>
   fun getColumn(rs: ResultSet): List<String> {
     if (!this::columns.isInitialized) {

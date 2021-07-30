@@ -16,11 +16,11 @@ import java.util.stream.Stream
 @ExtendWith(BuddyH2Extension::class)
 internal class InsertQueryBuilderTest {
   lateinit var txManager: JdbcTemplate
-  lateinit var underTest: Repository
+  lateinit var underTest: Database
 
   @BeforeEach
   internal fun setUp() {
-    underTest = DefaultRepository(txManager)
+    underTest = Database.using(txManager)
 
     underTest.execute("drop table if exists test_entity")
     underTest.execute("create table if not exists test_entity (id int primary key auto_increment, name varchar unique, field_name int, boolean_field boolean)")

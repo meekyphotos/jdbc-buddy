@@ -1,6 +1,5 @@
 package com.experive.buddy
 
-import com.experive.buddy.impl.DefaultRepository
 import com.experive.buddy.support.BuddyH2Extension
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -8,12 +7,12 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(BuddyH2Extension::class)
-internal class H2CoreRepositoryTest : DatabaseCoreQueries() {
+internal class H2CoreDatabaseTest : DatabaseCoreQueries() {
 
 
   @BeforeEach
   internal fun setUp() {
-    underTest = DefaultRepository(txManager)
+    underTest = Database.using(txManager)
 
     underTest.execute("create table if not exists test_entity (id int primary key auto_increment, name varchar, field_name int, boolean_field boolean)")
     underTest.execute("create table if not exists test_relation (id int primary key auto_increment, test_id int, active boolean)")
