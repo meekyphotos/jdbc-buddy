@@ -39,7 +39,7 @@ Then in your dependencies:
 <dependency>
   <groupId>com.experive</groupId>
   <artifactId>jdbc-buddy</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
 </dependency>
 ```
 
