@@ -3,7 +3,7 @@ package com.experive.buddy
 import com.experive.buddy.impl.Introspector
 import com.google.common.primitives.Primitives
 
-class Record(private val data: Map<String, Any>) {
+data class Record(private val data: Map<String, Any>) {
   fun containsKey(key: String): Boolean {
     return data.containsKey(key)
   }

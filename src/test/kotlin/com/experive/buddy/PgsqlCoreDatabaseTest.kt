@@ -1,7 +1,8 @@
 package com.experive.buddy
 
 import com.experive.buddy.support.BuddyPostgresExtension
-import org.assertj.core.api.Assertions
+import com.google.common.truth.Truth.assertThat
+import org.json.JSONObject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -14,6 +15,7 @@ internal class PgsqlCoreDatabaseTest : DatabaseCoreQueries() {
 
     underTest.execute("create table if not exists test_entity (id serial primary key, name text, field_name int, boolean_field boolean)")
     underTest.execute("create table if not exists test_relation (id serial primary key, test_id int, active boolean)")
+    underTest.execute("create table if not exists test_json (id serial primary key, map jsonb, relation jsonb)")
     underTest.persistMany(
       arrayListOf(
         TestEntity(null, "Miguél", 1, true),
@@ -62,12 +64,32 @@ internal class PgsqlCoreDatabaseTest : DatabaseCoreQueries() {
       .fetch()
 
     val results = record.map { it.into(TestEntity::class.java) }.toList()
-    Assertions.assertThat(results).hasSize(8)
-    Assertions.assertThat(results.map { it.name }).isEqualTo(
+    assertThat(results).hasSize(8)
+    assertThat(results.map { it.name }).isEqualTo(
       arrayListOf(
         "Miku", "MIGUÉL", "Miguél", "Michele", "Michel", "Michael", "Mendel", null
       )
     )
   }
 
+  @Test
+  internal fun testJsonQuery() {
+    underTest.persistMany(
+      listOf(
+        TestJson(null, JSONObject(mapOf("a" to "1")), null),
+        TestJson(null, JSONObject(mapOf("a" to "2")), null),
+        TestJson(null, JSONObject(mapOf("a" to "3")), null),
+        TestJson(null, JSONObject(mapOf("a" to "3")), null),
+        TestJson(null, JSONObject(mapOf("a" to "2")), null),
+        TestJson(null, JSONObject(mapOf("a" to "5")), null),
+      )
+    ).execute()
+    val jsonProp = jsonTable.column(TestJson::map)
+    val res = underTest.selectFrom(jsonTable)
+      .where(jsonProp.get<String>("a").eq("3"))
+      .fetchInto().toList()
+
+    assertThat(res.map { it.map.getString("a") }).isEqualTo(arrayListOf("3", "3"))
+  }
 }
+

@@ -1,6 +1,6 @@
 package com.experive.buddy
 
-class SQLFunction<I, O>(private val fnName: String, private vararg val value: Expression<I>) : Expression<O> {
+class SQLFunction<I, O>(private val fnName: String, private vararg val value: Expression<out I>) : Expression<O> {
 
   override fun collectValues(): List<Any?> = value.flatMap { it.collectValues() }
 

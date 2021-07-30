@@ -2,6 +2,8 @@ package com.experive.buddy
 
 import com.experive.buddy.annotations.Id
 import com.experive.buddy.annotations.Table
+import org.json.JSONArray
+import org.json.JSONObject
 
 data class TestEntity(
   @Id
@@ -9,6 +11,13 @@ data class TestEntity(
   var name: String? = null,
   var fieldName: Int? = null,
   var booleanField: Boolean? = false
+)
+
+data class TestJson(
+  @Id
+  var id: Int? = null,
+  var map: JSONObject,
+  var relation: JSONArray?
 )
 
 data class TestRelation(

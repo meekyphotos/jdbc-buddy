@@ -1,8 +1,9 @@
 package com.experive.buddy.impl
 
 import com.experive.buddy.*
+import com.experive.buddy.dialect.Dialect
+import com.google.common.truth.Truth.assertThat
 import io.mockk.mockk
-import org.assertj.core.api.Assertions
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -13,11 +14,11 @@ internal class SelectQueryBuilderTest {
   @ParameterizedTest
   @MethodSource("queries")
   fun testQueryGeneration(queryBuilder: SelectQueryBuilder<TestEntity>, expectedQuery: String) {
-    Assertions.assertThat(queryBuilder.toSQL()).isEqualTo(expectedQuery)
+    assertThat(queryBuilder.toSQL()).isEqualTo(expectedQuery)
   }
 
   companion object {
-    fun qb(vararg selectFieldOrAsterisk: Expression<*>) = SelectQueryBuilder(mockk(), TestEntity::class.java, *selectFieldOrAsterisk).from(table)
+    fun qb(vararg selectFieldOrAsterisk: Expression<*>) = SelectQueryBuilder(mockk(), TestEntity::class.java, Dialect.of(""), *selectFieldOrAsterisk).from(table)
 
     @JvmStatic
     fun queries(): Stream<Arguments> {

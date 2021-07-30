@@ -2,9 +2,10 @@ package com.experive.buddy.impl
 
 import com.experive.buddy.TestEntity
 import com.experive.buddy.table
+import com.google.common.truth.Truth.assertThat
 import io.mockk.mockk
-import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 internal class UpdateQueryBuilderTest {
   @Test
@@ -12,11 +13,11 @@ internal class UpdateQueryBuilderTest {
     val table = TestEntity::class.java.table()
     val underTest = UpdateQueryBuilder(table, mockk())
 
-    Assertions.assertThatThrownBy {
+    val exception = assertThrows<IllegalStateException> {
       underTest.toSQL()
-    }.isInstanceOf(IllegalStateException::class.java)
-      .hasMessage("You need to specify at least one column to update")
-
+    }
+    assertThat(exception).isInstanceOf(IllegalStateException::class.java)
+    assertThat(exception).hasMessageThat().isEqualTo("You need to specify at least one column to update")
   }
 
   @Test
@@ -27,7 +28,7 @@ internal class UpdateQueryBuilderTest {
 
     underTest.set(name, "")
 
-    Assertions.assertThat(
+    assertThat(
       underTest.toSQL()
     ).isEqualTo("UPDATE test_entity ${table.alias} SET name=?")
   }

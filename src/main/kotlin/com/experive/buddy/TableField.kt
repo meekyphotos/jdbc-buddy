@@ -2,9 +2,9 @@ package com.experive.buddy
 
 import com.experive.buddy.impl.ColumnDetails
 
-data class TableField<R, T>(private val table: Table<R>, private val property: ColumnDetails) : Expression<T> {
-  val name: String
-    get() = property.name
+open class TableField<R, T>(private val table: Table<R>, private val property: ColumnDetails) : Expression<T> {
+  val name: String = property.name
+  val dataType = property.type
 
   override fun toQualifiedSqlFragment(): String = table.alias + "." + name
   override fun toSqlFragment(): String = name

@@ -6,7 +6,7 @@ import com.experive.buddy.annotations.GeneratedValue
 import com.experive.buddy.annotations.Id
 import com.experive.buddy.annotations.Table
 import com.experive.buddy.impl.Introspector
-import org.assertj.core.api.Assertions
+import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -25,36 +25,36 @@ internal class IntrospectorTest {
   @MethodSource("tableNames")
   internal fun tableNamesAreCorrectlyExtracted(entity: Class<*>, expectedName: String) {
     val table = Introspector.analyze(entity)
-    Assertions.assertThat(table.name).isEqualTo(expectedName)
+    assertThat(table.name).isEqualTo(expectedName)
   }
 
   @Test
   internal fun columnsAreIdentified() {
     val table = Introspector.analyze(TestEntity::class.java)
-    Assertions.assertThat(table.columns).hasSize(4)
-    Assertions.assertThat(table.columns["id"]).isNotNull
-    Assertions.assertThat(table.columns["id"]!!.id).isTrue
+    assertThat(table.columns).hasSize(4)
+    assertThat(table.columns["id"]).isNotNull()
+    assertThat(table.columns["id"]!!.id).isTrue()
   }
 
   @Test
   internal fun columnsMetadataisReadFromAnnotation() {
     val table = Introspector.analyze(AnnotatedTable2::class.java)
-    Assertions.assertThat(table.columns).hasSize(2)
+    assertThat(table.columns).hasSize(2)
     val idColumn = table.columns["id"]
-    Assertions.assertThat(idColumn).isNotNull
-    Assertions.assertThat(idColumn!!.id).isTrue
-    Assertions.assertThat(idColumn.name).isEqualTo("id")
-    Assertions.assertThat(idColumn.generated).isEqualTo(true)
-    Assertions.assertThat(idColumn.insertable).isEqualTo(false)
-    Assertions.assertThat(idColumn.updatable).isEqualTo(false)
+    assertThat(idColumn).isNotNull()
+    assertThat(idColumn!!.id).isTrue()
+    assertThat(idColumn.name).isEqualTo("id")
+    assertThat(idColumn.generated).isEqualTo(true)
+    assertThat(idColumn.insertable).isEqualTo(false)
+    assertThat(idColumn.updatable).isEqualTo(false)
 
     val nameColumn = table.columns["name"]
-    Assertions.assertThat(nameColumn).isNotNull
-    Assertions.assertThat(nameColumn!!.id).isFalse
-    Assertions.assertThat(nameColumn.name).isEqualTo("display_name")
-    Assertions.assertThat(nameColumn.generated).isEqualTo(false)
-    Assertions.assertThat(nameColumn.insertable).isEqualTo(true)
-    Assertions.assertThat(nameColumn.updatable).isEqualTo(true)
+    assertThat(nameColumn).isNotNull()
+    assertThat(nameColumn!!.id).isFalse()
+    assertThat(nameColumn.name).isEqualTo("display_name")
+    assertThat(nameColumn.generated).isEqualTo(false)
+    assertThat(nameColumn.insertable).isEqualTo(true)
+    assertThat(nameColumn.updatable).isEqualTo(true)
 
   }
 

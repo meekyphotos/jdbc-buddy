@@ -1,6 +1,6 @@
 package com.experive.buddy
 
-import org.assertj.core.api.Assertions.assertThat
+import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 
@@ -27,7 +27,7 @@ internal class TableTest {
   internal fun shouldReturnWhenColumnExists() {
     val table = TestEntity::class.java.table()
     val column = table.column(TestEntity::name)
-    assertThat(column).isNotNull
+    assertThat(column).isNotNull()
     assertThat(column.name).isEqualTo("name")
   }
 
@@ -36,7 +36,7 @@ internal class TableTest {
   internal fun shouldReturnWhenRequestingId() {
     val table = TestEntity::class.java.table()
     val column = table.idColumn<Int>()
-    assertThat(column).isNotNull
+    assertThat(column).isNotNull()
     assertThat(column!!.name).isEqualTo("id")
   }
 

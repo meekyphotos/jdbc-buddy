@@ -2,8 +2,8 @@ package com.experive.buddy.impl
 
 import com.experive.buddy.TestEntity
 import com.experive.buddy.table
+import com.google.common.truth.Truth.assertThat
 import io.mockk.mockk
-import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 
 internal class DeleteQueryBuilderTest {
@@ -11,9 +11,7 @@ internal class DeleteQueryBuilderTest {
   internal fun shouldNotAddWhereConditionWhenPredicatesAreEmpty() {
     val table = TestEntity::class.java.table()
     val underTest = DeleteQueryBuilder(table, mockk())
-
-
-    Assertions.assertThat(
+    assertThat(
       underTest.toSQL()
     ).isEqualTo("DELETE FROM test_entity ${table.alias}")
   }
@@ -26,7 +24,7 @@ internal class DeleteQueryBuilderTest {
 
     underTest.where(name.eq("something"))
 
-    Assertions.assertThat(
+    assertThat(
       underTest.toSQL()
     ).isEqualTo("DELETE FROM test_entity ${table.alias} WHERE ${table.alias}.name = ?")
   }

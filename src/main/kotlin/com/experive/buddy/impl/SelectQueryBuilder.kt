@@ -1,6 +1,7 @@
 package com.experive.buddy.impl
 
 import com.experive.buddy.*
+import com.experive.buddy.dialect.Dialect
 import com.experive.buddy.impl.results.StreamQueryResult
 import com.experive.buddy.predicates.Predicate
 import com.experive.buddy.steps.*
@@ -9,6 +10,7 @@ import org.springframework.jdbc.core.JdbcTemplate
 internal class SelectQueryBuilder<R>(
   private val template: JdbcTemplate,
   private val recordClass: Class<R>,
+  private val dialect: Dialect,
   private vararg val selectFieldOrAsterisk: Expression<*>
 ) : SelectFromStep<R>, SelectWhereStep<R>, SelectOffsetStep<R>, SelectJoinStep<R> {
   internal val joins = ArrayList<JoinDetails>()
@@ -90,7 +92,7 @@ internal class SelectQueryBuilder<R>(
   }
 
   override fun fetch(): QueryResult<Record> {
-    return StreamQueryResult(template.queryForStream(toSQL(), RecordMapper(), *collectParameters().toTypedArray()))
+    return StreamQueryResult(template.queryForStream(toSQL(), RecordMapper(dialect), *collectParameters().toTypedArray()))
   }
 
   override fun fetchInto(): QueryResult<R> = fetch().map { it.into(recordClass) }

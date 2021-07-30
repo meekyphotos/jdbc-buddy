@@ -1,11 +1,15 @@
 package com.experive.buddy.impl
 
 import com.experive.buddy.*
+import com.experive.buddy.dialect.Dialect
 import com.experive.buddy.support.BuddyH2Extension
+import com.google.common.truth.Truth.assertThat
 import io.mockk.mockk
-import org.assertj.core.api.Assertions
+import org.json.JSONArray
+import org.json.JSONObject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -25,6 +29,7 @@ internal class InsertQueryBuilderTest {
     underTest.execute("drop table if exists test_entity")
     underTest.execute("create table if not exists test_entity (id int primary key auto_increment, name varchar unique, field_name int, boolean_field boolean)")
     underTest.execute("create table if not exists test_relation (id int primary key auto_increment, test_id int, active boolean)")
+    underTest.execute("create table if not exists test_json (id int primary key auto_increment, map json, relation json)")
     underTest.persistMany(
       arrayListOf(
         TestEntity(null, "Michele", 3),
@@ -39,145 +44,154 @@ internal class InsertQueryBuilderTest {
   @ParameterizedTest
   @MethodSource("queries")
   fun testQueryGeneration(queryBuilder: InsertQueryBuilder<TestEntity>, expectedQuery: String) {
-    Assertions.assertThat(queryBuilder.toSQL()).isEqualTo(expectedQuery)
+    assertThat(queryBuilder.toSQL()).isEqualTo(expectedQuery)
   }
 
   @ParameterizedTest
   @MethodSource("executionQueries")
   fun testQueryExecution(create: (InsertQueryBuilder<TestEntity>) -> InsertQueryBuilder<TestEntity>, expected: Int) {
-    val base = InsertQueryBuilder(table, txManager, "H2")
+    val base = InsertQueryBuilder(table, txManager, Dialect.of("H2"))
     val execute = create(base).execute()
-    Assertions.assertThat(execute).isEqualTo(expected)
+    assertThat(execute).isEqualTo(expected)
   }
 
   @Test
   fun testReturningId_usingFetchOne() {
-    val base = InsertQueryBuilder(table, txManager, "H2")
+    val base = InsertQueryBuilder(table, txManager, Dialect.of("H2"))
     base.columns(name, fieldName).values("name", 1).returning(id)
     val r = base.fetchOne()
-    Assertions.assertThat(r).isNotNull
-    Assertions.assertThat(r!!.containsKey("id")).isTrue
+    assertThat(r).isNotNull()
+    assertThat(r!!.containsKey("id")).isTrue()
   }
 
   @Test
   fun testReturningId_usingFetchOneIntoClass() {
-    val base = InsertQueryBuilder(table, txManager, "H2")
+    val base = InsertQueryBuilder(table, txManager, Dialect.of("H2"))
     base.columns(name, fieldName).values("name", 1).returning(id)
     val r = base.fetchOneInto(Integer::class.java)
-    Assertions.assertThat(r).isNotNull
+    assertThat(r).isNotNull()
   }
 
   @Test
   fun testReturningId_usingFetchSingleIntoClass() {
-    val base = InsertQueryBuilder(table, txManager, "H2")
+    val base = InsertQueryBuilder(table, txManager, Dialect.of("H2"))
     base.columns(name, fieldName).values("name", 1).returning()
     val r = base.fetchSingleInto(Integer::class.java)
-    Assertions.assertThat(r).isNotNull
+    assertThat(r).isNotNull()
   }
 
   @Test
   fun testFetchShouldThrowWhenNoReturning() {
-    val base = InsertQueryBuilder(table, txManager, "H2")
+    val base = InsertQueryBuilder(table, txManager, Dialect.of("H2"))
     base.columns(name, fieldName).values("name", 1)
-    Assertions.assertThatThrownBy { base.fetchSingleInto(Integer::class.java) }
-      .isInstanceOf(IllegalStateException::class.java)
-      .hasMessage("Fetch is only allowed when using returning")
+
+    assertThat(assertThrows<IllegalStateException> { base.fetchSingleInto(Integer::class.java) })
+      .hasMessageThat()
+      .isEqualTo("Fetch is only allowed when using returning")
 
   }
 
   @Test
   fun testReturningId_usingFetchOneInto() {
-    val base = InsertQueryBuilder(table, txManager, "H2")
+    val base = InsertQueryBuilder(table, txManager, Dialect.of("H2"))
     base.columns(name, fieldName).values("name", 1).returning(id)
     val r = base.fetchOneInto()
-    Assertions.assertThat(r).isNotNull
-    Assertions.assertThat(r!!.id).isNotNull
+    assertThat(r).isNotNull()
+    assertThat(r!!.id).isNotNull()
   }
 
   @Test
   fun testReturningId_usingFetchSingleInto() {
-    val base = InsertQueryBuilder(table, txManager, "H2")
+    val base = InsertQueryBuilder(table, txManager, Dialect.of("H2"))
     base.columns(name, fieldName).values("name", 1).returning(id)
     val r = base.fetchSingleInto()
-    Assertions.assertThat(r).isNotNull
-    Assertions.assertThat(r.id).isNotNull
+    assertThat(r).isNotNull()
+    assertThat(r.id).isNotNull()
   }
 
   @Test
   fun testReturningId_usingFetchInto() {
-    val base = InsertQueryBuilder(table, txManager, "H2")
+    val base = InsertQueryBuilder(table, txManager, Dialect.of("H2"))
     base.columns(name, fieldName).values("name", 1).returning(id)
     val r = base.fetchInto().toList()
-    Assertions.assertThat(r).isNotNull
-    Assertions.assertThat(r).hasSize(1)
-    Assertions.assertThat(r[0].id).isNotNull
+    assertThat(r).isNotNull()
+    assertThat(r).hasSize(1)
+    assertThat(r[0].id).isNotNull()
   }
 
   @Test
   fun testReturningId() {
-    val base = InsertQueryBuilder(table, txManager, "H2")
+    val base = InsertQueryBuilder(table, txManager, Dialect.of("H2"))
     base.columns(name, fieldName).values("name", 1).returning(id)
     val r = base.fetchOne()
-    Assertions.assertThat(r).isNotNull
-    Assertions.assertThat(r!!.containsKey("id")).isTrue
+    assertThat(r).isNotNull()
+    assertThat(r!!.containsKey("id")).isTrue()
   }
 
   @Test
   fun testReturningId_noResultsBack() {
-    val base = InsertQueryBuilder(table, txManager, "H2")
+    val base = InsertQueryBuilder(table, txManager, Dialect.of("H2"))
     base.columns(name, fieldName).values("Michele", 1).onDuplicateKeyIgnore().returning(id)
     val r = base.fetchOneInto()
-    Assertions.assertThat(r).isNull()
+    assertThat(r).isNull()
   }
 
   @Test
   fun testReturningMultipleFields() {
-    val base = InsertQueryBuilder(table, txManager, "H2")
+    val base = InsertQueryBuilder(table, txManager, Dialect.of("H2"))
     base.columns(name, fieldName).values("name", 1).returning(id, name, fieldName)
     val r = base.fetchOne()
-    Assertions.assertThat(r).isNotNull
-    Assertions.assertThat(r!!.containsKey("id")).isTrue
-    Assertions.assertThat(r.containsKey("name")).isTrue
-    Assertions.assertThat(r.containsKey("field_name")).isTrue
+    assertThat(r).isNotNull()
+    assertThat(r!!.containsKey("id")).isTrue()
+    assertThat(r.containsKey("name")).isTrue()
+    assertThat(r.containsKey("field_name")).isTrue()
   }
 
   @Test
   fun shouldCheckImproperUsageOfColumnsMethod() {
     val qb = h2Qb()
     qb.set(name, "")
-    Assertions.assertThatThrownBy {
+    val exception = assertThrows<IllegalStateException> {
       qb.columns(name, id)
-    }.isInstanceOf(IllegalStateException::class.java)
-      .hasMessage("Columns are specified automatically when you use set(Field, value)")
+    }
+    assertThat(exception)
+      .hasMessageThat()
+      .isEqualTo("Columns are specified automatically when you use set(Field, value)")
   }
 
   @Test
   fun shouldThrowWhenNoColumnsHaveBeenSpecified() {
     val qb = h2Qb()
-    Assertions.assertThatThrownBy {
+    val exception = assertThrows<IllegalStateException> {
       qb.toSQL()
-    }.isInstanceOf(IllegalStateException::class.java)
-      .hasMessage("You need to defined at least one column to insert")
+    }
+    assertThat(exception)
+      .hasMessageThat()
+      .isEqualTo("You need to defined at least one column to insert")
   }
 
   @Test
   fun shouldThrowWhenNoValuesHaveBeenSpecified() {
     val qb = h2Qb()
     qb.columns(name, fieldName)
-    Assertions.assertThatThrownBy {
+    val exception = assertThrows<IllegalStateException> {
       qb.toSQL()
-    }.isInstanceOf(IllegalStateException::class.java)
-      .hasMessage("Missing values to insert")
+    }
+    assertThat(exception)
+      .hasMessageThat()
+      .isEqualTo("Missing values to insert")
   }
 
   @Test
   fun shouldThrowWhenCallinValuesAfterSelect() {
     val qb = h2Qb()
     qb.select(qb())
-    Assertions.assertThatThrownBy {
+    val exception = assertThrows<IllegalStateException> {
       qb.values(1, 2)
-    }.isInstanceOf(IllegalStateException::class.java)
-      .hasMessage("Cannot specify values when using select insert")
+    }
+    assertThat(exception)
+      .hasMessageThat()
+      .isEqualTo("Cannot specify values when using select insert")
   }
 
   @Test
@@ -185,30 +199,36 @@ internal class InsertQueryBuilderTest {
     val qb = h2Qb()
     qb.columns(name, fieldName)
     qb.values(1, 2)
-    Assertions.assertThatThrownBy {
+    val ex = assertThrows<IllegalStateException> {
       qb.select(qb())
-    }.isInstanceOf(IllegalStateException::class.java)
-      .hasMessage("Cannot use select after you've used set method")
+    }
+    assertThat(ex)
+      .hasMessageThat()
+      .isEqualTo("Cannot use select after you've used set method")
   }
 
   @Test
   fun shouldThrowWhenCallingSelectAfterSet() {
     val qb = h2Qb()
     qb.set(name, "")
-    Assertions.assertThatThrownBy {
+    val ex = assertThrows<IllegalStateException> {
       qb.select(qb())
-    }.isInstanceOf(IllegalStateException::class.java)
-      .hasMessage("Cannot use select after you've used values method")
+    }
+    assertThat(ex)
+      .hasMessageThat()
+      .isEqualTo("Cannot use select after you've used values method")
   }
 
   @Test
   fun shouldThrowWhenCallingSetAfterSelect() {
     val qb = h2Qb()
     qb.select(qb())
-    Assertions.assertThatThrownBy {
+    val ex = assertThrows<IllegalStateException> {
       qb.set(name, "")
-    }.isInstanceOf(IllegalStateException::class.java)
-      .hasMessage("Cannot use set method when using select insert")
+    }
+    assertThat(ex)
+      .hasMessageThat()
+      .isEqualTo("Cannot use set method when using select insert")
   }
 
   @Test
@@ -216,56 +236,88 @@ internal class InsertQueryBuilderTest {
     val qb = h2Qb()
     qb.columns(name, fieldName)
     qb.values("name", 2)
-    Assertions.assertThatThrownBy {
+    val ex = assertThrows<IllegalStateException> {
       qb.set(name, "")
-    }.isInstanceOf(IllegalStateException::class.java)
-      .hasMessage("Cannot use set method when using multiple records")
+    }
+    assertThat(ex)
+      .hasMessageThat()
+      .isEqualTo("Cannot use set method when using multiple records")
   }
 
   @Test
   fun shouldThrowWhenCallingSetMultipleTimesWithTheSameColumn() {
     val qb = h2Qb()
     qb.set(name, "1")
-    Assertions.assertThatThrownBy {
+    val ex = assertThrows<IllegalStateException> {
       qb.set(name, "2")
-    }.isInstanceOf(IllegalStateException::class.java)
-      .hasMessage("Cannot set same field multiple times")
+    }
+    assertThat(ex)
+      .hasMessageThat()
+      .isEqualTo("Cannot set same field multiple times")
   }
 
   @Test
   fun shouldThrowWhenCallingSetAfterColumns() {
     val qb = h2Qb()
     qb.columns(name, fieldName)
-    Assertions.assertThatThrownBy {
+    val ex = assertThrows<IllegalStateException> {
       qb.set(name, "2")
-    }.isInstanceOf(IllegalStateException::class.java)
-      .hasMessage("Cannot use set after calling columns")
+    }
+    assertThat(ex)
+      .hasMessageThat()
+      .isEqualTo("Cannot use set after calling columns")
   }
 
   @Test
   fun shouldThrowWhenCallingValuesWithInvalidNumberOfColumns() {
     val qb = h2Qb()
     qb.columns(name, fieldName)
-    Assertions.assertThatThrownBy {
+    val ex = assertThrows<IllegalStateException> {
       qb.values("a")
-    }.isInstanceOf(IllegalStateException::class.java)
-      .hasMessage("Specified values don't match the number of columns")
+    }
+    assertThat(ex)
+      .hasMessageThat()
+      .isEqualTo("Specified values don't match the number of columns")
   }
 
   @Test
   fun shouldThrowWhenCallingValuesAfterCallingSet() {
     val qb = h2Qb()
     qb.set(name, "")
-    Assertions.assertThatThrownBy {
+    val ex = assertThrows<IllegalStateException> {
       qb.values(1, 2)
-    }.isInstanceOf(IllegalStateException::class.java)
-      .hasMessage("Cannot mix and match set(Field, value) with values")
+    }
+    assertThat(ex)
+      .hasMessageThat()
+      .isEqualTo("Cannot mix and match set(Field, value) with values")
+  }
+
+  @Test
+  internal fun testJsonSupport_usingMap() {
+
+    val base = InsertQueryBuilder(jsonTable, txManager, Dialect.of("H2"))
+    val column = jsonTable.column(TestJson::map)
+    base.columns(column)
+      .values(JSONObject(mapOf("a" to "b")))
+      .execute()
+
+  }
+
+  @Test
+  internal fun testJsonSupport_usingArray() {
+
+    val base = InsertQueryBuilder(jsonTable, txManager, Dialect.of("H2"))
+    val column = jsonTable.column(TestJson::relation)
+    base.columns(column)
+      .values(JSONArray(listOf(1, 2, 3)))
+      .execute()
+
   }
 
   companion object {
-    fun h2Qb() = InsertQueryBuilder(table, mockk(), "H2")
-    fun pgQb() = InsertQueryBuilder(table, mockk(), "Postgresql")
-    fun qb(vararg selectFieldOrAsterisk: Expression<*>) = SelectQueryBuilder(mockk(), TestEntity::class.java, *selectFieldOrAsterisk).from(testRelationTable)
+    fun h2Qb() = InsertQueryBuilder(table, mockk(), Dialect.of("H2"))
+    fun pgQb() = InsertQueryBuilder(table, mockk(), Dialect.of("PostgreSQL"))
+    fun qb(vararg selectFieldOrAsterisk: Expression<*>) = SelectQueryBuilder(mockk(), TestEntity::class.java, Dialect.of(""), *selectFieldOrAsterisk).from(testRelationTable)
 
     @JvmStatic
     fun queries(): Stream<Arguments> {
@@ -313,7 +365,10 @@ internal class InsertQueryBuilderTest {
     }
 
     @JvmStatic
-    private val table = TestEntity::class.java.table()
+    private val table = TestEntity::class.table()
+
+    @JvmStatic
+    private val jsonTable = TestJson::class.table()
 
     @JvmStatic
     private val testRelationTable = TestRelation::class.java.table()

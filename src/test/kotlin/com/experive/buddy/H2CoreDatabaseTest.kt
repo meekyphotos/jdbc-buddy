@@ -1,7 +1,7 @@
 package com.experive.buddy
 
 import com.experive.buddy.support.BuddyH2Extension
-import org.assertj.core.api.Assertions
+import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -16,6 +16,7 @@ internal class H2CoreDatabaseTest : DatabaseCoreQueries() {
 
     underTest.execute("create table if not exists test_entity (id int primary key auto_increment, name varchar, field_name int, boolean_field boolean)")
     underTest.execute("create table if not exists test_relation (id int primary key auto_increment, test_id int, active boolean)")
+    underTest.execute("create table if not exists test_json (id int primary key auto_increment, map json, relation json)")
     underTest.persistMany(
       arrayListOf(
         TestEntity(null, "Miguél", 1, true),
@@ -64,8 +65,8 @@ internal class H2CoreDatabaseTest : DatabaseCoreQueries() {
       .fetch()
 
     val results = record.map { it.into(TestEntity::class.java) }.toList()
-    Assertions.assertThat(results).hasSize(8)
-    Assertions.assertThat(results.map { it.name }).isEqualTo(
+    assertThat(results).hasSize(8)
+    assertThat(results.map { it.name }).isEqualTo(
       arrayListOf(
         "Miku", "Miguél", "Michele", "Michel", "Michael", "Mendel", "MIGUÉL", null
       )

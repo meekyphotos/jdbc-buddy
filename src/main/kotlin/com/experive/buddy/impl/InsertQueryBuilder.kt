@@ -1,22 +1,23 @@
 package com.experive.buddy.impl
 
 import com.experive.buddy.*
+import com.experive.buddy.dialect.Dialect
 import com.experive.buddy.impl.results.SafeQueryResult
 import com.experive.buddy.impl.results.StreamQueryResult
 import com.experive.buddy.steps.*
+import org.json.JSONArray
+import org.json.JSONObject
 import org.springframework.jdbc.core.JdbcTemplate
-import org.springframework.jdbc.core.PreparedStatementCreator
 import org.springframework.jdbc.support.GeneratedKeyHolder
 
 internal class InsertQueryBuilder<R>(
   private val entityClass: Table<R>,
   private val template: JdbcTemplate,
-  private val dbName: String
+  private val dialect: Dialect
 ) : InsertSetStep<R>, InsertValuesStep<R>, InsertMoreStep<R>, InsertReturningStep<R>, InsertResultStep<R> {
 
   private var onConflictDoNothing: Boolean = false
   private var onDuplicateKeyIgnore: Boolean = false
-  private var returning: Boolean = false
   private var returningFields = ArrayList<Expression<*>>()
   private var columns = ArrayList<TableField<R, *>>()
   private var values = ArrayList<Any?>()
@@ -58,36 +59,39 @@ internal class InsertQueryBuilder<R>(
     } else {
       if (records.isEmpty()) {
         sb.append("VALUES (")
-        values.joinTo(sb, ", ") { "?" }
+        sb.append(printRowPlaceholder())
         sb.append(")")
       } else {
         sb.append("VALUES ")
-        records.joinTo(sb, ", ") { "(" + it.joinToString(", ") { "?" } + ")" }
+        records.joinTo(sb, ", ") { "(" + printRowPlaceholder() + ")" }
       }
     }
-    if (onConflictDoNothing || onDuplicateKeyIgnore) {
-      sb.append(" ON CONFLICT DO NOTHING")
+    if (onConflictDoNothing) {
+      dialect.emitOnConflictDoNothing(sb)
+    } else if (onDuplicateKeyIgnore) {
+      dialect.emitOnDuplicateKeyIgnore(sb)
     }
-    if (supportsReturning() && returningFields.isNotEmpty()) {
-      sb.append(" RETURNING ")
-      returningFields.joinTo(sb, ", ") { it.toSqlFragment() }
+
+    if (returningFields.isNotEmpty()) {
+      dialect.emitReturning(sb, returningFields)
     }
     return sb.toString()
   }
 
+  private fun printRowPlaceholder() = columns.joinToString(", ") { formatColumnPlaceholder(it) }
+
+  private fun formatColumnPlaceholder(it: TableField<R, *>): String {
+    return dialect.emitPlaceholder(it.dataType)
+  }
+
   override fun returning(): InsertResultStep<R> {
-    returningFields.add(Asterisk())
-    returning = true
+    returningFields.add(Asterisk)
     return this
   }
 
-  private fun supportsReturning(): Boolean {
-    return dbName != "H2"
-  }
 
   override fun returning(vararg selectFieldOrAsterisk: Expression<*>): InsertResultStep<R> {
     returningFields.addAll(selectFieldOrAsterisk)
-    returning = true
     return this
   }
 
@@ -97,7 +101,19 @@ internal class InsertQueryBuilder<R>(
     check(columns.size == values.size) { "Cannot use set after calling columns" }
     check(!columns.contains(tableField)) { "Cannot set same field multiple times" }
     columns.add(tableField)
-    values.add(value)
+
+    when (value) {
+      is JSONObject -> {
+        values.add(value.toString())
+      }
+      is JSONArray -> {
+        values.add(value.toString())
+      }
+      else -> {
+        values.add(value)
+      }
+    }
+
     return this
   }
 
@@ -111,7 +127,20 @@ internal class InsertQueryBuilder<R>(
     check(select == null) { "Cannot specify values when using select insert" }
     check(this.values.isEmpty()) { "Cannot mix and match set(Field, value) with values" }
     check(this.columns.size == values.size) { "Specified values don't match the number of columns" }
-    records.add(values)
+
+    records.add(this.columns.mapIndexed { index, _ ->
+      when (val value = values[index]) {
+        is JSONObject -> {
+          value.toString()
+        }
+        is JSONArray -> {
+          value.toString()
+        }
+        else -> {
+          value
+        }
+      }
+    }.toTypedArray())
     return this
   }
 
@@ -129,14 +158,14 @@ internal class InsertQueryBuilder<R>(
   override fun fetchSingleInto(): R = fetchSingle().into(entityClass.enclosingType)
 
   override fun fetch(): QueryResult<Record> {
-    check(returning) { "Fetch is only allowed when using returning" }
-    return if (supportsReturning()) {
-      StreamQueryResult(template.queryForStream(toSQL(), RecordMapper(), *collectParameters().toTypedArray()))
+    check(returningFields.isNotEmpty()) { "Fetch is only allowed when using returning" }
+    return if (dialect.supportReturning()) {
+      StreamQueryResult(template.queryForStream(toSQL(), RecordMapper(dialect), *collectParameters().toTypedArray()))
     } else {
       val keys = GeneratedKeyHolder()
-      template.update(PreparedStatementCreator {
+      template.update({
         val returningColumns = ArrayList<String>()
-        if (returningFields.contains(Asterisk())) {
+        if (returningFields.contains(Asterisk)) {
           returningColumns.add(entityClass.idColumn<Any?>()!!.toSqlFragment())
         } else {
           returningColumns.addAll(returningFields.map { f -> f.toSqlFragment() })

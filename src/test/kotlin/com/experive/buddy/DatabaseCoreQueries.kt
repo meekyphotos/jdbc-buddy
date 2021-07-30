@@ -3,10 +3,11 @@ package com.experive.buddy
 import com.experive.buddy.exceptions.NoDataFoundException
 import com.experive.buddy.exceptions.TooManyRowsException
 import com.experive.buddy.predicates.Predicate
-import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
+import com.google.common.truth.Truth.assertThat
+import org.json.JSONObject
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -69,7 +70,7 @@ abstract class DatabaseCoreQueries {
     val record = builder.fetchInto(TestEntity::class.java)
     val results = record.toList()
     assertThat(results).hasSize(names.size)
-    assertThat(results.map { it.name }).containsAll(names)
+    assertThat(results.map { it.name }).containsExactly(*names.toTypedArray())
   }
 
   @ParameterizedTest
@@ -133,7 +134,7 @@ abstract class DatabaseCoreQueries {
     }
     val record = builder.fetchOneInto(Long::class.java)
 
-    assertThat(record).isNotNull
+    assertThat(record).isNotNull()
     assertThat(record).isEqualTo(count.toLong())
   }
 
@@ -155,7 +156,7 @@ abstract class DatabaseCoreQueries {
   @DisplayName("Find one: should return the entity when exists")
   internal fun fetchone_shouldReturnSomethingWhenIdExists() {
     val result = underTest.byId(mikuId, table).fetchOneInto()
-    assertThat(result).isNotNull
+    assertThat(result).isNotNull()
   }
 
   @Test
@@ -168,15 +169,15 @@ abstract class DatabaseCoreQueries {
   @Test
   @DisplayName("Find one: should throw exception when id does not exist")
   internal fun shouldThrowWhenIdDoesNotExist() {
-    assertThatThrownBy { underTest.byId(6545132132L, table).fetchSingleInto() }
-      .isInstanceOf(NoDataFoundException::class.java)
+    val e = assertThrows<NoDataFoundException> { underTest.byId(6545132132L, table).fetchSingleInto() }
+    assertThat(e).isInstanceOf(NoDataFoundException::class.java)
   }
 
   @Test
   @DisplayName("fetchSingleInto: should throw exception when more than one element is returned")
   internal fun shouldThrowWhenMultipleElements() {
-    assertThatThrownBy { underTest.selectFrom(table).where(fieldName.eq(27)).fetchSingleInto() }
-      .isInstanceOf(TooManyRowsException::class.java)
+    val e = assertThrows<TooManyRowsException> { underTest.selectFrom(table).where(fieldName.eq(27)).fetchSingleInto() }
+    assertThat(e).isInstanceOf(TooManyRowsException::class.java)
   }
 
   @Test
@@ -184,7 +185,7 @@ abstract class DatabaseCoreQueries {
   internal fun shouldReturnSomethingWhenIdExists() {
     val expected = underTest.selectFrom(table).limit(1).fetchSingleInto()
     val result = underTest.byId(expected.id, table).fetchSingleInto()
-    assertThat(result).isNotNull
+    assertThat(result).isNotNull()
     assertThat(result).isEqualTo(expected)
   }
 
@@ -231,7 +232,7 @@ abstract class DatabaseCoreQueries {
 
     val results = record.map { it.into(TestEntity::class.java) }.toList()
     assertThat(results).hasSize(3)
-    assertThat(results.map { it.name!! }).contains("Miguél", "Michele", "Miku")
+    assertThat(results.map { it.name!! }).containsExactly("Miguél", "Michele", "Miku")
   }
 
   @Test
@@ -291,7 +292,7 @@ abstract class DatabaseCoreQueries {
       results.add(element!!)
     }
     assertThat(results).hasSize(2)
-    assertThat(results).contains("Miguél", "Michele")
+    assertThat(results).containsExactly("Miguél", "Michele")
   }
 
   @Test
@@ -377,7 +378,6 @@ abstract class DatabaseCoreQueries {
 
     val results = record.toList()
     assertThat(results).hasSize(8)
-    assertThat(results).allMatch { it.containsKey("name") }
     assertThat(results[0].containsValue("Miguél"))
     assertThat(results.map { it["name"] }).isEqualTo(
       arrayListOf(
@@ -447,9 +447,28 @@ abstract class DatabaseCoreQueries {
     )
   }
 
+  @Test
+  internal fun testJsonSupport_usingMap() {
+
+    val column = jsonTable.column(TestJson::map)
+    val idColumn = jsonTable.column(TestJson::id)
+    val id = underTest.insertInto(jsonTable).set(column, JSONObject(mapOf("a" to "b"))).returning(idColumn).fetchSingleInto(Int::class.java)
+
+    val json = underTest
+      .select()
+      .from(jsonTable)
+      .where(idColumn eq id)
+      .fetchSingleInto(jsonTable.enclosingType)
+
+    assertThat(json.map.toMap()).isEqualTo(JSONObject().put("a", "b").toMap())
+  }
+
   companion object {
     @JvmStatic
     protected val table = TestEntity::class.table()
+
+    @JvmStatic
+    protected val jsonTable = TestJson::class.table()
 
     @JvmStatic
     protected val testRelationTable = TestRelation::class.table()

@@ -32,7 +32,7 @@ class Table<R>(private val details: TableDetails<R>) {
   }
 
   fun asterisk(): Asterisk {
-    return Asterisk()
+    return Asterisk
   }
 
 }
