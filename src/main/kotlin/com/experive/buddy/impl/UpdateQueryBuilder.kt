@@ -1,7 +1,7 @@
 package com.experive.buddy.impl
 
-import com.experive.buddy.Table
 import com.experive.buddy.TableField
+import com.experive.buddy.TableInfo
 import com.experive.buddy.predicates.Predicate
 import com.experive.buddy.steps.Update
 import com.experive.buddy.steps.UpdateSetMoreStep
@@ -9,7 +9,7 @@ import com.experive.buddy.steps.UpdateSetStep
 import org.springframework.jdbc.core.JdbcTemplate
 
 internal class UpdateQueryBuilder<R>(
-  private val table: Table<R>,
+  private val tableInfo: TableInfo<R>,
   private val template: JdbcTemplate
 ) : UpdateSetStep<R>, UpdateSetMoreStep<R>, Update<R> {
   private val columns = ArrayList<TableField<R, *>>()
@@ -30,7 +30,7 @@ internal class UpdateQueryBuilder<R>(
   override fun toSQL(): String {
     check(columns.isNotEmpty()) { "You need to specify at least one column to update" }
     val sb = StringBuilder()
-    sb.append("UPDATE ${table.name()} ${table.alias} SET ")
+    sb.append("UPDATE ${tableInfo.name()} ${tableInfo.alias} SET ")
     columns.joinTo(sb, ", ") { "${it.name}=?" }
     if (predicates.isNotEmpty()) {
       sb.append(" WHERE ")

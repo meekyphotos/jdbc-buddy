@@ -1,13 +1,13 @@
 package com.experive.buddy.impl
 
-import com.experive.buddy.Table
+import com.experive.buddy.TableInfo
 import com.experive.buddy.predicates.Predicate
 import com.experive.buddy.steps.Delete
 import com.experive.buddy.steps.DeleteWhereStep
 import org.springframework.jdbc.core.JdbcTemplate
 
 internal class DeleteQueryBuilder<R>(
-  private val table: Table<R>,
+  private val tableInfo: TableInfo<R>,
   private val template: JdbcTemplate
 ) : DeleteWhereStep<R> {
   private val predicates = ArrayList<Predicate>()
@@ -28,7 +28,7 @@ internal class DeleteQueryBuilder<R>(
 
   override fun toSQL(): String {
     val sb = StringBuilder()
-    sb.append("DELETE FROM ${table.name()} ${table.alias}")
+    sb.append("DELETE FROM ${tableInfo.name()} ${tableInfo.alias}")
     if (predicates.isNotEmpty()) {
       sb.append(" WHERE ")
       predicates.joinTo(sb, " AND ") { it.toQualifiedSqlFragment() }

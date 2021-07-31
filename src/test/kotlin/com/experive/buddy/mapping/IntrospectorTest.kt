@@ -1,10 +1,6 @@
 package com.experive.buddy.mapping
 
 import com.experive.buddy.TestEntity
-import com.experive.buddy.annotations.Column
-import com.experive.buddy.annotations.GeneratedValue
-import com.experive.buddy.annotations.Id
-import com.experive.buddy.annotations.Table
 import com.experive.buddy.impl.Introspector
 import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.Test
@@ -12,12 +8,16 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
+import javax.persistence.Column
+import javax.persistence.GeneratedValue
+import javax.persistence.Id
+import javax.persistence.Table
 
-@Table("my_table")
+@Table(name = "my_table")
 data class AnnotatedTable(val id: Int)
 
-@Table("myTable")
-data class AnnotatedTable2(@Id @GeneratedValue val id: Int, @Column("display_name") val name: String)
+@Table(name = "myTable")
+data class AnnotatedTable2(@Id @GeneratedValue val id: Int, @Column(name = "display_name") val name: String)
 
 internal class IntrospectorTest {
 

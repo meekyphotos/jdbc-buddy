@@ -14,7 +14,7 @@ internal class SelectQueryBuilder<R>(
   private vararg val selectFieldOrAsterisk: Expression<*>
 ) : SelectFromStep<R>, SelectWhereStep<R>, SelectOffsetStep<R>, SelectJoinStep<R> {
   internal val joins = ArrayList<JoinDetails>()
-  private lateinit var root: Table<*>
+  private lateinit var root: TableInfo<*>
 
   private var offset: Int? = null
   private var limit: Int? = null
@@ -32,28 +32,28 @@ internal class SelectQueryBuilder<R>(
     }
   }
 
-  override fun <Q> join(otherTable: Table<Q>): SelectOnStep<R, Q> {
-    return SelectOnBuilder(JoinType.JOIN, this, otherTable)
+  override fun <Q> join(otherTableInfo: TableInfo<Q>): SelectOnStep<R, Q> {
+    return SelectOnBuilder(JoinType.JOIN, this, otherTableInfo)
   }
 
-  override fun <Q> join(otherTable: Table<Q>, qTableField: TableField<Q, *>): SelectJoinStep<R> {
-    return join(otherTable).on(root.idColumn<Any>()!!.eq(qTableField))
+  override fun <Q> join(otherTableInfo: TableInfo<Q>, qTableField: TableField<Q, *>): SelectJoinStep<R> {
+    return join(otherTableInfo).on(root.idColumn<Any>()!!.eq(qTableField))
   }
 
-  override fun <Q> leftJoin(otherTable: Table<Q>): SelectOnStep<R, Q> {
-    return SelectOnBuilder(JoinType.LEFT, this, otherTable)
+  override fun <Q> leftJoin(otherTableInfo: TableInfo<Q>): SelectOnStep<R, Q> {
+    return SelectOnBuilder(JoinType.LEFT, this, otherTableInfo)
   }
 
-  override fun <Q> leftJoin(otherTable: Table<Q>, qTableField: TableField<Q, *>): SelectJoinStep<R> {
-    return leftJoin(otherTable).on(root.idColumn<Any>()!!.eq(qTableField))
+  override fun <Q> leftJoin(otherTableInfo: TableInfo<Q>, qTableField: TableField<Q, *>): SelectJoinStep<R> {
+    return leftJoin(otherTableInfo).on(root.idColumn<Any>()!!.eq(qTableField))
   }
 
-  override fun <Q> rightJoin(otherTable: Table<Q>): SelectOnStep<R, Q> {
-    return SelectOnBuilder(JoinType.RIGHT, this, otherTable)
+  override fun <Q> rightJoin(otherTableInfo: TableInfo<Q>): SelectOnStep<R, Q> {
+    return SelectOnBuilder(JoinType.RIGHT, this, otherTableInfo)
   }
 
-  override fun <Q> rightJoin(otherTable: Table<Q>, qTableField: TableField<Q, *>): SelectJoinStep<R> {
-    return rightJoin(otherTable).on(root.idColumn<Any>()!!.eq(qTableField))
+  override fun <Q> rightJoin(otherTableInfo: TableInfo<Q>, qTableField: TableField<Q, *>): SelectJoinStep<R> {
+    return rightJoin(otherTableInfo).on(root.idColumn<Any>()!!.eq(qTableField))
   }
 
   override fun offset(amount: Int): Select<R> {
@@ -118,7 +118,7 @@ internal class SelectQueryBuilder<R>(
           JoinType.JOIN -> "JOIN "
           JoinType.LEFT -> "LEFT JOIN "
           JoinType.RIGHT -> "RIGHT JOIN "
-        } + it.table.name() + " " + it.table.alias + " ON " + it.predicate.toQualifiedSqlFragment()
+        } + it.tableInfo.name() + " " + it.tableInfo.alias + " ON " + it.predicate.toQualifiedSqlFragment()
       }
     }
     if (predicates.isNotEmpty()) {
@@ -155,8 +155,8 @@ internal class SelectQueryBuilder<R>(
     return out
   }
 
-  override fun from(table: Table<*>): SelectJoinStep<R> {
-    this.root = table
+  override fun from(tableInfo: TableInfo<*>): SelectJoinStep<R> {
+    this.root = tableInfo
     return this
   }
 

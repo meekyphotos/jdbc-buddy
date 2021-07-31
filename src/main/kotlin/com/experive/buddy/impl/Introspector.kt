@@ -1,15 +1,16 @@
 package com.experive.buddy.impl
 
 import com.experive.buddy.TableField
-import com.experive.buddy.annotations.Column
-import com.experive.buddy.annotations.GeneratedValue
-import com.experive.buddy.annotations.Id
-import com.experive.buddy.annotations.Table
+
 import java.lang.reflect.AnnotatedElement
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.concurrent.atomic.AtomicLong
+import javax.persistence.Column
+import javax.persistence.GeneratedValue
+import javax.persistence.Id
+import javax.persistence.Table
 
 data class ColumnDetails(
   val name: String,
@@ -22,7 +23,7 @@ data class ColumnDetails(
 ) {
   fun <E> getValue(entity: E): Any? = field.get(entity)
 
-  fun <T> asFieldOf(t: com.experive.buddy.Table<T>): TableField<T, Any?> {
+  fun <T> asFieldOf(t: com.experive.buddy.TableInfo<T>): TableField<T, Any?> {
     return TableField(t, this)
   }
 }
@@ -115,7 +116,7 @@ internal object Introspector {
 
   private fun <T> normalizeTableName(java: Class<T>) = if (java.isAnnotationPresent(Table::class.java)) {
     val table = java.getAnnotation(Table::class.java)
-    table.value.ifBlank {
+    table.name.ifBlank {
       normalizeName(java.simpleName.substringAfterLast('.'))
     }
   } else {
@@ -125,16 +126,16 @@ internal object Introspector {
   private fun build(column: Column?, field: Field, fieldName: String, isIdentifier: Boolean, isGenerated: Boolean): ColumnDetails {
     return if (column != null) {
       ColumnDetails(
-        column.value,
+        column.name,
         field.type,
         field,
         !(isIdentifier || isGenerated) && column.updatable,
-        !(isIdentifier || isGenerated) && column.insertable,
+        !(isGenerated) && column.insertable,
         isGenerated,
         isIdentifier
       )
     } else {
-      ColumnDetails(normalizeName(fieldName), field.type, field, !(isIdentifier || isGenerated), !(isIdentifier || isGenerated), isGenerated, isIdentifier)
+      ColumnDetails(normalizeName(fieldName), field.type, field, !(isIdentifier || isGenerated), !isGenerated, isGenerated, isIdentifier)
     }
   }
 

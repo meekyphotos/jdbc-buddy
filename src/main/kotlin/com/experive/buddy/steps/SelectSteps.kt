@@ -12,19 +12,19 @@ interface SelectOnStep<R, Q> {
 }
 
 interface SelectJoinStep<R> : SelectWhereStep<R> {
-  fun <Q> join(otherTable: Table<Q>): SelectOnStep<R, Q>
-  fun <Q> join(otherTable: Table<Q>, qTableField: TableField<Q, *>): SelectJoinStep<R>
+  fun <Q> join(otherTableInfo: TableInfo<Q>): SelectOnStep<R, Q>
+  fun <Q> join(otherTableInfo: TableInfo<Q>, qTableField: TableField<Q, *>): SelectJoinStep<R>
 
-  fun <Q> leftJoin(otherTable: Table<Q>): SelectOnStep<R, Q>
-  fun <Q> leftJoin(otherTable: Table<Q>, qTableField: TableField<Q, *>): SelectJoinStep<R>
+  fun <Q> leftJoin(otherTableInfo: TableInfo<Q>): SelectOnStep<R, Q>
+  fun <Q> leftJoin(otherTableInfo: TableInfo<Q>, qTableField: TableField<Q, *>): SelectJoinStep<R>
 
-  fun <Q> rightJoin(otherTable: Table<Q>): SelectOnStep<R, Q>
-  fun <Q> rightJoin(otherTable: Table<Q>, qTableField: TableField<Q, *>): SelectJoinStep<R>
+  fun <Q> rightJoin(otherTableInfo: TableInfo<Q>): SelectOnStep<R, Q>
+  fun <Q> rightJoin(otherTableInfo: TableInfo<Q>, qTableField: TableField<Q, *>): SelectJoinStep<R>
 
 }
 
 interface SelectFromStep<R> {
-  fun from(table: Table<*>): SelectJoinStep<R>
+  fun from(tableInfo: TableInfo<*>): SelectJoinStep<R>
 }
 
 interface SelectOffsetStep<R> : Select<R> {
