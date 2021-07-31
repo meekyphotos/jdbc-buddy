@@ -39,9 +39,10 @@ Then in your dependencies:
 <dependency>
   <groupId>com.experive</groupId>
   <artifactId>jdbc-buddy</artifactId>
-  <version>1.0.1</version>
+  <version>LATEST VERSION</version>
 </dependency>
 ```
+To get the latest version, check the release menu
 
 ## How to query
 
