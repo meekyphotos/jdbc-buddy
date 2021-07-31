@@ -1,11 +1,11 @@
 package com.experive.buddy
 
+import com.beust.klaxon.JsonArray
+import com.beust.klaxon.JsonObject
 import com.experive.buddy.exceptions.NoDataFoundException
 import com.experive.buddy.exceptions.TooManyRowsException
 import com.experive.buddy.predicates.Predicate
 import com.google.common.truth.Truth.assertThat
-import org.json.JSONArray
-import org.json.JSONObject
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -453,7 +453,7 @@ abstract class DatabaseCoreQueries {
 
     val column = jsonTable.column(TestJson::map)
     val idColumn = jsonTable.column(TestJson::id)
-    val id = underTest.insertInto(jsonTable).set(column, JSONObject(mapOf("a" to "b"))).returning(idColumn).fetchSingleInto(Int::class.java)
+    val id = underTest.insertInto(jsonTable).set(column, JsonObject(mapOf("a" to "b"))).returning(idColumn).fetchSingleInto(Int::class.java)
 
     val json = underTest
       .select()
@@ -461,7 +461,7 @@ abstract class DatabaseCoreQueries {
       .where(idColumn eq id)
       .fetchSingleInto(jsonTable.enclosingType)
 
-    assertThat(json.map!!.toMap()).isEqualTo(JSONObject().put("a", "b").toMap())
+    assertThat(json.map).isEqualTo(JsonObject(mapOf("a" to "b")))
   }
 
   @Test
@@ -475,7 +475,7 @@ abstract class DatabaseCoreQueries {
 
     val column = jsonTable.column(TestJson::relation)
     val idColumn = jsonTable.column(TestJson::id)
-    val id = underTest.insertInto(jsonTable).set(column, JSONArray(arrayListOf("a", "b"))).returning(idColumn).fetchSingleInto(Int::class.java)
+    val id = underTest.insertInto(jsonTable).set(column, JsonArray(1, 2, 3)).returning(idColumn).fetchSingleInto(Int::class.java)
 
     val json = underTest
       .select()
@@ -483,7 +483,7 @@ abstract class DatabaseCoreQueries {
       .where(idColumn eq id)
       .fetchSingleInto(jsonTable.enclosingType)
 
-    assertThat(json.relation!!.toList()).isEqualTo(JSONArray().put("a").put("b").toList())
+    assertThat(json.relation).isEqualTo(JsonArray(1, 2, 3))
   }
 
   companion object {

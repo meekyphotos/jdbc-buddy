@@ -1,8 +1,8 @@
 package com.experive.buddy
 
+import com.beust.klaxon.JsonObject
 import com.experive.buddy.support.BuddyPostgresExtension
 import com.google.common.truth.Truth.assertThat
-import org.json.JSONObject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -76,20 +76,20 @@ internal class PgsqlCoreDatabaseTest : DatabaseCoreQueries() {
   internal fun testJsonQuery() {
     underTest.persistMany(
       listOf(
-        TestJson(null, JSONObject(mapOf("a" to "1")), null),
-        TestJson(null, JSONObject(mapOf("a" to "2")), null),
-        TestJson(null, JSONObject(mapOf("a" to "3")), null),
-        TestJson(null, JSONObject(mapOf("a" to "3")), null),
-        TestJson(null, JSONObject(mapOf("a" to "2")), null),
-        TestJson(null, JSONObject(mapOf("a" to "5")), null),
+        TestJson(null, JsonObject(mapOf("a" to "1")), null),
+        TestJson(null, JsonObject(mapOf("a" to "2")), null),
+        TestJson(null, JsonObject(mapOf("a" to "3")), null),
+        TestJson(null, JsonObject(mapOf("a" to "3")), null),
+        TestJson(null, JsonObject(mapOf("a" to "2")), null),
+        TestJson(null, JsonObject(mapOf("a" to "5")), null),
       )
     ).execute()
-    val jsonProp = jsonTable.column<JSONObject>("map")!!
+    val jsonProp = jsonTable.column<JsonObject>("map")!!
     val res = underTest.selectFrom(jsonTable)
       .where(jsonProp.get<String>("a").eq("3"))
       .fetchInto().toList()
 
-    assertThat(res.map { it.map!!.getString("a") }).isEqualTo(arrayListOf("3", "3"))
+    assertThat(res.map { it.map!!.string("a") }).isEqualTo(arrayListOf("3", "3"))
   }
 }
 

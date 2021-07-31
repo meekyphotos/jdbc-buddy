@@ -1,7 +1,7 @@
 package com.experive.buddy
 
-import org.json.JSONArray
-import org.json.JSONObject
+import com.beust.klaxon.JsonArray
+import com.beust.klaxon.JsonObject
 import javax.persistence.GeneratedValue
 import javax.persistence.Id
 import javax.persistence.Table
@@ -18,8 +18,8 @@ data class TestEntity(
 data class TestJson(
   @Id @GeneratedValue
   var id: Int? = null,
-  var map: JSONObject?,
-  var relation: JSONArray?
+  var map: JsonObject?,
+  var relation: JsonArray<Int>?
 )
 
 data class TestRelation(
