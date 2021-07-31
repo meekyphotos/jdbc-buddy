@@ -11,7 +11,7 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.support.GeneratedKeyHolder
 
 internal class InsertQueryBuilder<R>(
-  private val entityClass: Table<R>,
+  private val entityClass: TableInfo<R>,
   private val template: JdbcTemplate,
   private val dialect: Dialect
 ) : InsertSetStep<R>, InsertValuesStep<R>, InsertMoreStep<R>, InsertReturningStep<R>, InsertResultStep<R> {

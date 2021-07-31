@@ -4,7 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 
-internal class TableTest {
+internal class TableInfoTest {
 
   @Test
   @DisplayName("should return null when requesting a column that doesn't exist")

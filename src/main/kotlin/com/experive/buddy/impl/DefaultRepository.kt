@@ -23,7 +23,7 @@ class DefaultRepository(private val template: JdbcTemplate) : Database {
     return StreamQueryResult(template.queryForStream(sql, RecordMapper(dialect), *args))
   }
 
-  override fun <R> insertInto(entityClass: Table<R>): InsertSetStep<R> {
+  override fun <R> insertInto(entityClass: TableInfo<R>): InsertSetStep<R> {
     return InsertQueryBuilder(entityClass, template, dialect)
   }
 
@@ -35,11 +35,11 @@ class DefaultRepository(private val template: JdbcTemplate) : Database {
     return SelectQueryBuilder(template, entityClass, dialect, *selectFieldOrAsterisk)
   }
 
-  override fun <R> update(entityClass: Table<R>): UpdateSetStep<R> {
+  override fun <R> update(entityClass: TableInfo<R>): UpdateSetStep<R> {
     return UpdateQueryBuilder(entityClass, template)
   }
 
-  override fun <R> deleteFrom(entityClass: Table<R>): DeleteWhereStep<R> {
+  override fun <R> deleteFrom(entityClass: TableInfo<R>): DeleteWhereStep<R> {
     return DeleteQueryBuilder(entityClass, template)
   }
 }
