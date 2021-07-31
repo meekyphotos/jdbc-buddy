@@ -6,7 +6,7 @@
 
   <artifactId>jdbc-buddy</artifactId>
   <groupId>com.experive</groupId>
-  <version>1.1.0</version>
+  <version>1.2.0</version>
   <packaging>jar</packaging>
 
   <name>jdbc-buddy</name>
@@ -52,10 +52,12 @@
         </executions>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.22.2</version>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
         <version>2.22.2</version>
       </plugin>
@@ -187,12 +189,14 @@
       <version>1.12.0</version>
       <scope>test</scope>
     </dependency>
-    <!-- https://mvnrepository.com/artifact/org.json/json -->
+
+    <!-- https://mvnrepository.com/artifact/javax.persistence/javax.persistence-api -->
     <dependency>
-      <groupId>org.json</groupId>
-      <artifactId>json</artifactId>
-      <version>20210307</version>
+      <groupId>com.beust</groupId>
+      <artifactId>klaxon</artifactId>
+      <version>5.5</version>
     </dependency>
+
     <!-- https://mvnrepository.com/artifact/javax.persistence/javax.persistence-api -->
     <dependency>
       <groupId>javax.persistence</groupId>

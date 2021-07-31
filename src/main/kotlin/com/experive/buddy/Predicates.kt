@@ -1,11 +1,11 @@
 package com.experive.buddy
 
+import com.beust.klaxon.JsonObject
 import com.experive.buddy.impl.predicates.BetweenPredicate
 import com.experive.buddy.impl.predicates.JsonAccessor
 import com.experive.buddy.impl.predicates.OperatorOnlyPredicate
 import com.experive.buddy.impl.predicates.OperatorPredicate
 import com.experive.buddy.predicates.Predicate
-import org.json.JSONObject
 
 fun Expression<String?>.like(value: Expression<String?>): Predicate = OperatorPredicate(this, "like", value)
 fun Expression<String?>.ilike(value: Expression<String?>): Predicate = OperatorPredicate(lower(this), "like", lower(value))
@@ -28,6 +28,6 @@ fun <T : Comparable<T>?> Expression<T>.lessOrEqual(value: T): Predicate = lessOr
 fun <T : Comparable<T>?> Expression<T>.greaterThan(value: T): Predicate = greaterThan(value.asExpression())
 fun <T : Comparable<T>?> Expression<T>.greaterOrEqual(value: T): Predicate = greaterOrEqual(value.asExpression())
 
-fun <T1> Expression<JSONObject>.get(t: String): Expression<T1> {
+fun <T1> Expression<JsonObject>.get(t: String): Expression<T1> {
   return JsonAccessor(this, "->>", t)
 }

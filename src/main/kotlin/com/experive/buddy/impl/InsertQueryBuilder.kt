@@ -1,12 +1,12 @@
 package com.experive.buddy.impl
 
+import com.beust.klaxon.JsonArray
+import com.beust.klaxon.JsonObject
 import com.experive.buddy.*
 import com.experive.buddy.dialect.Dialect
 import com.experive.buddy.impl.results.SafeQueryResult
 import com.experive.buddy.impl.results.StreamQueryResult
 import com.experive.buddy.steps.*
-import org.json.JSONArray
-import org.json.JSONObject
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.support.GeneratedKeyHolder
 
@@ -103,11 +103,11 @@ internal class InsertQueryBuilder<R>(
     columns.add(tableField)
 
     when (value) {
-      is JSONObject -> {
-        values.add(value.toString())
+      is JsonObject -> {
+        values.add(value.toJsonString())
       }
-      is JSONArray -> {
-        values.add(value.toString())
+      is JsonArray<*> -> {
+        values.add(value.toJsonString())
       }
       else -> {
         values.add(value)
@@ -130,11 +130,11 @@ internal class InsertQueryBuilder<R>(
 
     records.add(this.columns.mapIndexed { index, _ ->
       when (val value = values[index]) {
-        is JSONObject -> {
-          value.toString()
+        is JsonObject -> {
+          value.toJsonString()
         }
-        is JSONArray -> {
-          value.toString()
+        is JsonArray<*> -> {
+          value.toJsonString()
         }
         else -> {
           value

@@ -1,12 +1,12 @@
 package com.experive.buddy.impl
 
+import com.beust.klaxon.JsonArray
+import com.beust.klaxon.JsonObject
 import com.experive.buddy.*
 import com.experive.buddy.dialect.Dialect
 import com.experive.buddy.support.BuddyH2Extension
 import com.google.common.truth.Truth.assertThat
 import io.mockk.mockk
-import org.json.JSONArray
-import org.json.JSONObject
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -298,7 +298,7 @@ internal class InsertQueryBuilderTest {
     val base = InsertQueryBuilder(jsonTable, txManager, Dialect.of("H2"))
     val column = jsonTable.column(TestJson::map)
     base.columns(column)
-      .values(JSONObject(mapOf("a" to "b")))
+      .values(JsonObject(mapOf("a" to "b")))
       .execute()
 
   }
@@ -309,7 +309,7 @@ internal class InsertQueryBuilderTest {
     val base = InsertQueryBuilder(jsonTable, txManager, Dialect.of("H2"))
     val column = jsonTable.column(TestJson::relation)
     base.columns(column)
-      .values(JSONArray(listOf(1, 2, 3)))
+      .values(JsonArray(1, 2, 3))
       .execute()
 
   }
