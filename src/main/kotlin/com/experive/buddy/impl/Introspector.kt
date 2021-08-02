@@ -1,9 +1,9 @@
 package com.experive.buddy.impl
 
 import com.experive.buddy.TableField
-
+import com.experive.buddy.TableInfo
+import com.experive.buddy.mapper.SmartMapper
 import java.lang.reflect.AnnotatedElement
-import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.concurrent.atomic.AtomicLong
@@ -11,6 +11,7 @@ import javax.persistence.Column
 import javax.persistence.GeneratedValue
 import javax.persistence.Id
 import javax.persistence.Table
+import kotlin.reflect.KClass
 
 data class ColumnDetails(
   val name: String,
@@ -23,44 +24,25 @@ data class ColumnDetails(
 ) {
   fun <E> getValue(entity: E): Any? = field.get(entity)
 
-  fun <T> asFieldOf(t: com.experive.buddy.TableInfo<T>): TableField<T, Any?> {
+  fun <T : Any> asFieldOf(t: TableInfo<T>): TableField<T, Any?> {
     return TableField(t, this)
   }
 }
 
-data class TableDetails<T>(
+data class TableDetails<T : Any>(
   val name: String,
 
   val columns: Map<String, ColumnDetails>,
-  val entityClass: Class<T>
+  val entityClass: KClass<T>
 ) {
   val insertableColumns: List<ColumnDetails> = columns.values.filter { it.insertable }
   val updatableColumns: List<ColumnDetails> = columns.values.filter { it.updatable }
   val idColumn: ColumnDetails? = columns.values.firstOrNull { it.id }
-  val fieldOrder: List<String> = entityClass.declaredFields.filter { !Modifier.isTransient(it.modifiers) }.map { it.name }
-  val emptyConstructor: Constructor<*>? = entityClass.constructors.firstOrNull { Modifier.isPublic(it.modifiers) && it.parameterCount == 0 }
-  val allArgsConstructor: Constructor<*>? = entityClass.constructors.firstOrNull { Modifier.isPublic(it.modifiers) && it.parameterCount == fieldOrder.size }
+  private val fieldOrder: List<Field> = entityClass.java.declaredFields.filter { !Modifier.isTransient(it.modifiers) }
   val alias: String = name + Introspector.classCounter.getAndIncrement()
   fun newInstance(map: Map<String, Any>): Any {
-    if (allArgsConstructor != null) {
-      return allArgsConstructor.newInstance(
-        *fieldOrder.map { map[columns[it]!!.name] }.toTypedArray()
-      )
-    } else if (emptyConstructor != null) {
-      val newInstance = emptyConstructor.newInstance()
-      fieldOrder.forEach {
-        val dbValue = map[columns[it]!!.name]
-        if (dbValue != null) {
-          val declaredField = entityClass.getDeclaredField(it)
-          declaredField.isAccessible = true
-          declaredField.set(newInstance, dbValue)
-        }
-      }
-      return newInstance
-    }
-    throw IllegalStateException("No constructor for entity: $entityClass")
+    return SmartMapper.modelMap(fieldOrder.associate { it.name to map[columns[it.name]!!.name] }, entityClass)
   }
-
 }
 
 internal data class Metadata(val identifier: Boolean, val generated: Boolean, val column: Column?) {
@@ -77,40 +59,41 @@ internal fun read(el: AnnotatedElement): Metadata {
 
 internal object Introspector {
   val classCounter = AtomicLong()
-  private val cache = HashMap<Class<*>, TableDetails<*>>()
-  fun <T> analyze(java: Class<T>): TableDetails<T> {
-    return cache.computeIfAbsent(java) {
+  private val cache = HashMap<KClass<*>, TableDetails<*>>()
+  fun <T : Any> analyze(kclass: KClass<T>): TableDetails<T> {
+    return cache.computeIfAbsent(kclass) {
+      val java = it.java
       val name: String = normalizeTableName(java)
       val fields = java.declaredFields
-        .filter { !Modifier.isTransient(it.modifiers) }
+        .filter { !Modifier.isTransient(java.modifiers) }
       val getter = java.declaredMethods
-        .filter { !Modifier.isStatic(it.modifiers) && (it.name.startsWith("get") || it.name.startsWith("is")) }
-        .filter { !Modifier.isTransient(it.modifiers) }
-        .associateBy { cleanMethodName(it.name) }
+        .filter { !Modifier.isStatic(java.modifiers) && (java.name.startsWith("get") || java.name.startsWith("is")) }
+        .filter { !Modifier.isTransient(java.modifiers) }
+        .associateBy { cleanMethodName(java.name) }
       val staticGetterKt = java.declaredMethods
-        .filter { Modifier.isStatic(it.modifiers) && (it.name.startsWith("get") || it.name.startsWith("is")) }
-        .filter { !Modifier.isTransient(it.modifiers) }
-        .associateBy { cleanMethodName(it.name) }
+        .filter { Modifier.isStatic(java.modifiers) && (java.name.startsWith("get") || java.name.startsWith("is")) }
+        .filter { !Modifier.isTransient(java.modifiers) }
+        .associateBy { cleanMethodName(java.name) }
       val columns = HashMap<String, ColumnDetails>()
-      fields.forEach {
-        val fieldName = it.name
-        it.isAccessible = true
-        val possibleElements = arrayOf(it, getter[it.name], staticGetterKt[it.name]).filterNotNull()
+      fields.forEach { field ->
+        val fieldName = field.name
+        field.isAccessible = true
+        val possibleElements = arrayOf(field, getter[field.name], staticGetterKt[field.name]).filterNotNull()
         var found = false
         for (element in possibleElements) {
           val meta = read(element)
           val (isIdentifier, isGenerated, column) = meta
           if (meta.wasAnnotated()) {
-            columns[fieldName] = build(column, it, fieldName, isIdentifier, isGenerated)
+            columns[fieldName] = build(column, field, fieldName, isIdentifier, isGenerated)
             found = true
             break
           }
         }
         if (!found) {
-          columns[fieldName] = build(null, it, fieldName, isIdentifier = false, isGenerated = false)
+          columns[fieldName] = build(null, field, fieldName, isIdentifier = false, isGenerated = false)
         }
       }
-      TableDetails(name, columns, java)
+      TableDetails(name, columns, it)
     } as TableDetails<T>
   }
 

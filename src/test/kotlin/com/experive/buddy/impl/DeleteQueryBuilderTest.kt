@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 internal class DeleteQueryBuilderTest {
   @Test
   internal fun shouldNotAddWhereConditionWhenPredicatesAreEmpty() {
-    val table = TestEntity::class.java.table()
+    val table = TestEntity::class.table()
     val underTest = DeleteQueryBuilder(table, mockk())
     assertThat(
       underTest.toSQL()
@@ -18,7 +18,7 @@ internal class DeleteQueryBuilderTest {
 
   @Test
   internal fun shouldAddWhereConditionWhenPredicatesAreProvided() {
-    val table = TestEntity::class.java.table()
+    val table = TestEntity::class.table()
     val name = table.column(TestEntity::name)
     val underTest = DeleteQueryBuilder(table, mockk())
 

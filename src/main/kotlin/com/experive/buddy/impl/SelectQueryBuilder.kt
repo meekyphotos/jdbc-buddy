@@ -6,10 +6,11 @@ import com.experive.buddy.impl.results.StreamQueryResult
 import com.experive.buddy.predicates.Predicate
 import com.experive.buddy.steps.*
 import org.springframework.jdbc.core.JdbcTemplate
+import kotlin.reflect.KClass
 
-internal class SelectQueryBuilder<R>(
+internal class SelectQueryBuilder<R : Any>(
   private val template: JdbcTemplate,
-  private val recordClass: Class<R>,
+  private val recordClass: KClass<R>,
   private val dialect: Dialect,
   private vararg val selectFieldOrAsterisk: Expression<*>
 ) : SelectFromStep<R>, SelectWhereStep<R>, SelectOffsetStep<R>, SelectJoinStep<R> {
@@ -32,27 +33,27 @@ internal class SelectQueryBuilder<R>(
     }
   }
 
-  override fun <Q> join(otherTableInfo: TableInfo<Q>): SelectOnStep<R, Q> {
+  override fun <Q : Any> join(otherTableInfo: TableInfo<Q>): SelectOnStep<R, Q> {
     return SelectOnBuilder(JoinType.JOIN, this, otherTableInfo)
   }
 
-  override fun <Q> join(otherTableInfo: TableInfo<Q>, qTableField: TableField<Q, *>): SelectJoinStep<R> {
+  override fun <Q : Any> join(otherTableInfo: TableInfo<Q>, qTableField: TableField<Q, *>): SelectJoinStep<R> {
     return join(otherTableInfo).on(root.idColumn<Any>()!!.eq(qTableField))
   }
 
-  override fun <Q> leftJoin(otherTableInfo: TableInfo<Q>): SelectOnStep<R, Q> {
+  override fun <Q : Any> leftJoin(otherTableInfo: TableInfo<Q>): SelectOnStep<R, Q> {
     return SelectOnBuilder(JoinType.LEFT, this, otherTableInfo)
   }
 
-  override fun <Q> leftJoin(otherTableInfo: TableInfo<Q>, qTableField: TableField<Q, *>): SelectJoinStep<R> {
+  override fun <Q : Any> leftJoin(otherTableInfo: TableInfo<Q>, qTableField: TableField<Q, *>): SelectJoinStep<R> {
     return leftJoin(otherTableInfo).on(root.idColumn<Any>()!!.eq(qTableField))
   }
 
-  override fun <Q> rightJoin(otherTableInfo: TableInfo<Q>): SelectOnStep<R, Q> {
+  override fun <Q : Any> rightJoin(otherTableInfo: TableInfo<Q>): SelectOnStep<R, Q> {
     return SelectOnBuilder(JoinType.RIGHT, this, otherTableInfo)
   }
 
-  override fun <Q> rightJoin(otherTableInfo: TableInfo<Q>, qTableField: TableField<Q, *>): SelectJoinStep<R> {
+  override fun <Q : Any> rightJoin(otherTableInfo: TableInfo<Q>, qTableField: TableField<Q, *>): SelectJoinStep<R> {
     return rightJoin(otherTableInfo).on(root.idColumn<Any>()!!.eq(qTableField))
   }
 
@@ -95,11 +96,11 @@ internal class SelectQueryBuilder<R>(
     return StreamQueryResult(template.queryForStream(toSQL(), RecordMapper(dialect), *collectParameters().toTypedArray()))
   }
 
-  override fun fetchInto(): QueryResult<R> = fetch().map { it.into(recordClass) }
+  override fun fetchInto(): QueryResult<R> = fetch().map { it.into(recordClass)!! }
 
   override fun fetchOneInto(): R? = fetchOne()?.into(recordClass)
 
-  override fun fetchSingleInto(): R = fetchSingle().into(recordClass)
+  override fun fetchSingleInto(): R = fetchSingle().into(recordClass)!!
 
   override fun toSQL(): String {
     val hasJoins = joins.isNotEmpty()

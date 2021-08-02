@@ -2,6 +2,7 @@ package com.experive.buddy
 
 import com.experive.buddy.impl.Introspector
 import com.google.common.primitives.Primitives
+import kotlin.reflect.KClass
 
 data class Record(private val data: Map<String, Any>) {
   fun containsKey(key: String): Boolean {
@@ -17,10 +18,10 @@ data class Record(private val data: Map<String, Any>) {
   }
 
   @Suppress("UNCHECKED_CAST")
-  fun <T> into(entityClass: Class<T>): T {
-    if (entityClass == Record::class.java) return this as T
-    if (Primitives.isWrapperType(entityClass) || entityClass.isPrimitive) {
-      return data.values.firstOrNull() as T
+  fun <T : Any> into(entityClass: KClass<T>): T? {
+    if (entityClass == Record::class) return this as T
+    if (Primitives.isWrapperType(entityClass.java) || entityClass.java.isPrimitive) {
+      return data.values.firstOrNull() as T?
     }
     return Introspector.analyze(entityClass).newInstance(data) as T
   }

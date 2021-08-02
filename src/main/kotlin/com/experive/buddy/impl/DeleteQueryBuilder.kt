@@ -6,7 +6,7 @@ import com.experive.buddy.steps.Delete
 import com.experive.buddy.steps.DeleteWhereStep
 import org.springframework.jdbc.core.JdbcTemplate
 
-internal class DeleteQueryBuilder<R>(
+internal class DeleteQueryBuilder<R : Any>(
   private val tableInfo: TableInfo<R>,
   private val template: JdbcTemplate
 ) : DeleteWhereStep<R> {

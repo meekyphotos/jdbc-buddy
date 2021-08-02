@@ -18,7 +18,7 @@ internal class SelectQueryBuilderTest {
   }
 
   companion object {
-    fun qb(vararg selectFieldOrAsterisk: Expression<*>) = SelectQueryBuilder(mockk(), TestEntity::class.java, Dialect.of(""), *selectFieldOrAsterisk).from(table)
+    fun qb(vararg selectFieldOrAsterisk: Expression<*>) = SelectQueryBuilder(mockk(), TestEntity::class, Dialect.of(""), *selectFieldOrAsterisk).from(table)
 
     @JvmStatic
     fun queries(): Stream<Arguments> {
@@ -39,10 +39,10 @@ internal class SelectQueryBuilderTest {
     }
 
     @JvmStatic
-    private val table = TestEntity::class.java.table()
+    private val table = TestEntity::class.table()
 
     @JvmStatic
-    private val testRelationTable = TestRelation::class.java.table()
+    private val testRelationTable = TestRelation::class.table()
 
     @JvmStatic
     private val trTestId = testRelationTable.column(TestRelation::testId)

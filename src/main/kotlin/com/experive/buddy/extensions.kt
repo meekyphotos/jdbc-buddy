@@ -6,5 +6,4 @@ import kotlin.reflect.KClass
 
 fun <I> I.asExpression(): Expression<I> = LiteralExpression(this)
 
-fun <E> Class<E>.table(): TableInfo<E> = TableInfo(Introspector.analyze(this))
-fun <E : Any> KClass<E>.table(): TableInfo<E> = this.java.table()
+fun <E : Any> KClass<E>.table(): TableInfo<E> = TableInfo(Introspector.analyze(this))

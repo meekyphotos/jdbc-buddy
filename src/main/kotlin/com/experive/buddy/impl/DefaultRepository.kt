@@ -8,6 +8,7 @@ import com.experive.buddy.steps.InsertSetStep
 import com.experive.buddy.steps.SelectFromStep
 import com.experive.buddy.steps.UpdateSetStep
 import org.springframework.jdbc.core.JdbcTemplate
+import kotlin.reflect.KClass
 
 class DefaultRepository(private val template: JdbcTemplate) : Database {
   private val dbName: String = template.dataSource!!.connection.use {
@@ -23,23 +24,23 @@ class DefaultRepository(private val template: JdbcTemplate) : Database {
     return StreamQueryResult(template.queryForStream(sql, RecordMapper(dialect), *args))
   }
 
-  override fun <R> insertInto(entityClass: TableInfo<R>): InsertSetStep<R> {
+  override fun <R : Any> insertInto(entityClass: TableInfo<R>): InsertSetStep<R> {
     return InsertQueryBuilder(entityClass, template, dialect)
   }
 
   override fun select(vararg selectFieldOrAsterisk: Expression<*>): SelectFromStep<Record> {
-    return SelectQueryBuilder(template, Record::class.java, dialect, *selectFieldOrAsterisk)
+    return SelectQueryBuilder(template, Record::class, dialect, *selectFieldOrAsterisk)
   }
 
-  override fun <R> selectForEntity(entityClass: Class<R>, vararg selectFieldOrAsterisk: Expression<*>): SelectFromStep<R> {
+  override fun <R : Any> selectForEntity(entityClass: KClass<R>, vararg selectFieldOrAsterisk: Expression<*>): SelectFromStep<R> {
     return SelectQueryBuilder(template, entityClass, dialect, *selectFieldOrAsterisk)
   }
 
-  override fun <R> update(entityClass: TableInfo<R>): UpdateSetStep<R> {
+  override fun <R : Any> update(entityClass: TableInfo<R>): UpdateSetStep<R> {
     return UpdateQueryBuilder(entityClass, template)
   }
 
-  override fun <R> deleteFrom(entityClass: TableInfo<R>): DeleteWhereStep<R> {
+  override fun <R : Any> deleteFrom(entityClass: TableInfo<R>): DeleteWhereStep<R> {
     return DeleteQueryBuilder(entityClass, template)
   }
 }

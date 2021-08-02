@@ -10,7 +10,7 @@ import org.junit.jupiter.api.assertThrows
 internal class UpdateQueryBuilderTest {
   @Test
   internal fun shouldCheckIfColumnsToUpdateAreEmpty() {
-    val table = TestEntity::class.java.table()
+    val table = TestEntity::class.table()
     val underTest = UpdateQueryBuilder(table, mockk())
 
     val exception = assertThrows<IllegalStateException> {
@@ -22,7 +22,7 @@ internal class UpdateQueryBuilderTest {
 
   @Test
   internal fun shouldNotAddWhereConditionWhenPredicatesAreEmpty() {
-    val table = TestEntity::class.java.table()
+    val table = TestEntity::class.table()
     val name = table.column(TestEntity::name)
     val underTest = UpdateQueryBuilder(table, mockk())
 

@@ -16,6 +16,7 @@ internal class PgsqlCoreDatabaseTest : DatabaseCoreQueries() {
     underTest.execute("create table if not exists test_entity (id serial primary key, name text, field_name int, boolean_field boolean)")
     underTest.execute("create table if not exists test_relation (id serial primary key, test_id int, active boolean)")
     underTest.execute("create table if not exists test_json (id serial primary key, map jsonb, relation jsonb)")
+    underTest.execute("create table if not exists date_entity (id serial primary key, local_time_field time, local_date_field date, local_date_time_field timestamp, java_date_field timestamp, java_timestamp_field timestamp)")
     underTest.persistMany(
       arrayListOf(
         TestEntity(null, "Miguél", 1, true),
@@ -27,15 +28,15 @@ internal class PgsqlCoreDatabaseTest : DatabaseCoreQueries() {
 
     michaelId = underTest.persist(TestEntity(null, "Michel", 4, true))
       .returning()
-      .fetchSingleInto(Int::class.java)
+      .fetchSingleInto(Int::class)
 
     mikuId = underTest.persist(TestEntity(null, "Miku", 27))
       .returning()
-      .fetchSingleInto(Int::class.java)
+      .fetchSingleInto(Int::class)
 
     mendelId = underTest.persist(TestEntity(null, "Mendel", 27, true))
       .returning()
-      .fetchSingleInto(Int::class.java)
+      .fetchSingleInto(Int::class)
 
     underTest.persist(TestEntity(null, null, 27)).execute()
 
@@ -63,7 +64,7 @@ internal class PgsqlCoreDatabaseTest : DatabaseCoreQueries() {
       .orderBy(name, Direction.DESC)
       .fetch()
 
-    val results = record.map { it.into(TestEntity::class.java) }.toList()
+    val results = record.map { it.into(TestEntity::class)!! }.toList()
     assertThat(results).hasSize(8)
     assertThat(results.map { it.name }).isEqualTo(
       arrayListOf(

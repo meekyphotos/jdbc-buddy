@@ -12,6 +12,7 @@ import javax.persistence.Column
 import javax.persistence.GeneratedValue
 import javax.persistence.Id
 import javax.persistence.Table
+import kotlin.reflect.KClass
 
 @Table(name = "my_table")
 data class AnnotatedTable(val id: Int)
@@ -23,14 +24,14 @@ internal class IntrospectorTest {
 
   @ParameterizedTest
   @MethodSource("tableNames")
-  internal fun tableNamesAreCorrectlyExtracted(entity: Class<*>, expectedName: String) {
+  internal fun tableNamesAreCorrectlyExtracted(entity: KClass<*>, expectedName: String) {
     val table = Introspector.analyze(entity)
     assertThat(table.name).isEqualTo(expectedName)
   }
 
   @Test
   internal fun columnsAreIdentified() {
-    val table = Introspector.analyze(TestEntity::class.java)
+    val table = Introspector.analyze(TestEntity::class)
     assertThat(table.columns).hasSize(4)
     assertThat(table.columns["id"]).isNotNull()
     assertThat(table.columns["id"]!!.id).isTrue()
@@ -38,7 +39,7 @@ internal class IntrospectorTest {
 
   @Test
   internal fun columnsMetadataisReadFromAnnotation() {
-    val table = Introspector.analyze(AnnotatedTable2::class.java)
+    val table = Introspector.analyze(AnnotatedTable2::class)
     assertThat(table.columns).hasSize(2)
     val idColumn = table.columns["id"]
     assertThat(idColumn).isNotNull()
@@ -63,9 +64,9 @@ internal class IntrospectorTest {
     @JvmStatic
     fun tableNames(): Stream<Arguments> {
       return Stream.of(
-        Arguments.of(TestEntity::class.java, "test_entity"),
-        Arguments.of(AnnotatedTable::class.java, "my_table"),
-        Arguments.of(AnnotatedTable2::class.java, "myTable"),
+        Arguments.of(TestEntity::class, "test_entity"),
+        Arguments.of(AnnotatedTable::class, "my_table"),
+        Arguments.of(AnnotatedTable2::class, "myTable"),
       )
     }
   }

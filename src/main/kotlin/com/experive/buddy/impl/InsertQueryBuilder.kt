@@ -10,7 +10,7 @@ import com.experive.buddy.steps.*
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.jdbc.support.GeneratedKeyHolder
 
-internal class InsertQueryBuilder<R>(
+internal class InsertQueryBuilder<R : Any>(
   private val entityClass: TableInfo<R>,
   private val template: JdbcTemplate,
   private val dialect: Dialect
@@ -151,11 +151,11 @@ internal class InsertQueryBuilder<R>(
     return this
   }
 
-  override fun fetchInto(): QueryResult<R> = fetch().map { it.into(entityClass.enclosingType) }
+  override fun fetchInto(): QueryResult<R> = fetch().map { it.into(entityClass.enclosingType)!! }
 
   override fun fetchOneInto(): R? = fetchOne()?.into(entityClass.enclosingType)
 
-  override fun fetchSingleInto(): R = fetchSingle().into(entityClass.enclosingType)
+  override fun fetchSingleInto(): R = fetchSingle().into(entityClass.enclosingType)!!
 
   override fun fetch(): QueryResult<Record> {
     check(returningFields.isNotEmpty()) { "Fetch is only allowed when using returning" }

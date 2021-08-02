@@ -2,6 +2,11 @@ package com.experive.buddy
 
 import com.beust.klaxon.JsonArray
 import com.beust.klaxon.JsonObject
+import java.sql.Timestamp
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.util.*
 import javax.persistence.GeneratedValue
 import javax.persistence.Id
 import javax.persistence.Table
@@ -52,3 +57,15 @@ class ForcedEmptyConstructorTestEntity {
   var fieldName: Int? = null
   var booleanField: Boolean? = null
 }
+
+
+@Table(name = "date_entity")
+data class DateEntity(
+  @Id @GeneratedValue
+  val id: Int? = null,
+  val localTimeField: LocalTime,
+  val localDateField: LocalDate,
+  val localDateTimeField: LocalDateTime,
+  val javaDateField: Date,
+  val javaTimestampField: Timestamp,
+)

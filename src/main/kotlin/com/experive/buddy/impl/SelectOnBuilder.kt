@@ -6,7 +6,7 @@ import com.experive.buddy.predicates.Predicate
 import com.experive.buddy.steps.SelectJoinStep
 import com.experive.buddy.steps.SelectOnStep
 
-internal class SelectOnBuilder<R, Q>(
+internal class SelectOnBuilder<R : Any, Q : Any>(
   private val joinType: JoinType,
   private val parent: SelectQueryBuilder<R>,
   private val tableInfo: TableInfo<Q>

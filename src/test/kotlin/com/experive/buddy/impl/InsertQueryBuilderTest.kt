@@ -68,7 +68,7 @@ internal class InsertQueryBuilderTest {
   fun testReturningId_usingFetchOneIntoClass() {
     val base = InsertQueryBuilder(table, txManager, Dialect.of("H2"))
     base.columns(name, fieldName).values("name", 1).returning(id)
-    val r = base.fetchOneInto(Integer::class.java)
+    val r = base.fetchOneInto(Integer::class)
     assertThat(r).isNotNull()
   }
 
@@ -76,7 +76,7 @@ internal class InsertQueryBuilderTest {
   fun testReturningId_usingFetchSingleIntoClass() {
     val base = InsertQueryBuilder(table, txManager, Dialect.of("H2"))
     base.columns(name, fieldName).values("name", 1).returning()
-    val r = base.fetchSingleInto(Integer::class.java)
+    val r = base.fetchSingleInto(Integer::class)
     assertThat(r).isNotNull()
   }
 
@@ -85,7 +85,7 @@ internal class InsertQueryBuilderTest {
     val base = InsertQueryBuilder(table, txManager, Dialect.of("H2"))
     base.columns(name, fieldName).values("name", 1)
 
-    assertThat(assertThrows<IllegalStateException> { base.fetchSingleInto(Integer::class.java) })
+    assertThat(assertThrows<IllegalStateException> { base.fetchSingleInto(Integer::class) })
       .hasMessageThat()
       .isEqualTo("Fetch is only allowed when using returning")
 
@@ -317,7 +317,7 @@ internal class InsertQueryBuilderTest {
   companion object {
     fun h2Qb() = InsertQueryBuilder(table, mockk(), Dialect.of("H2"))
     fun pgQb() = InsertQueryBuilder(table, mockk(), Dialect.of("PostgreSQL"))
-    fun qb(vararg selectFieldOrAsterisk: Expression<*>) = SelectQueryBuilder(mockk(), TestEntity::class.java, Dialect.of(""), *selectFieldOrAsterisk).from(testRelationTable)
+    fun qb(vararg selectFieldOrAsterisk: Expression<*>) = SelectQueryBuilder(mockk(), TestEntity::class, Dialect.of(""), *selectFieldOrAsterisk).from(testRelationTable)
 
     @JvmStatic
     fun queries(): Stream<Arguments> {
@@ -371,7 +371,7 @@ internal class InsertQueryBuilderTest {
     private val jsonTable = TestJson::class.table()
 
     @JvmStatic
-    private val testRelationTable = TestRelation::class.java.table()
+    private val testRelationTable = TestRelation::class.table()
 
     @JvmStatic
     private val trId = testRelationTable.column(TestRelation::id)

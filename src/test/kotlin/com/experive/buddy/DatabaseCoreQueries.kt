@@ -13,6 +13,9 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.jdbc.core.JdbcTemplate
+import java.sql.Timestamp
+import java.time.*
+import java.util.*
 import java.util.stream.Stream
 
 abstract class DatabaseCoreQueries {
@@ -68,7 +71,7 @@ abstract class DatabaseCoreQueries {
     } else {
       builder.where(trActive.isTrue() or trActive.isNull())
     }
-    val record = builder.fetchInto(TestEntity::class.java)
+    val record = builder.fetchInto(TestEntity::class)
     val results = record.toList()
     assertThat(results).hasSize(names.size)
     assertThat(results.map { it.name }).containsExactly(*names.toTypedArray())
@@ -101,7 +104,7 @@ abstract class DatabaseCoreQueries {
     if (predicate != null) {
       builder.where(predicate)
     }
-    val record = builder.fetchInto(ImmutableTestEntity::class.java)
+    val record = builder.fetchInto(ImmutableTestEntity::class)
     val results = record.toList()
     assertThat(results).hasSize(names.size)
     assertThat(results.map { it.name }).isEqualTo(names)
@@ -116,7 +119,7 @@ abstract class DatabaseCoreQueries {
     if (predicate != null) {
       builder.where(predicate)
     }
-    val record = builder.fetchInto(ForcedEmptyConstructorTestEntity::class.java)
+    val record = builder.fetchInto(ForcedEmptyConstructorTestEntity::class)
 
     val results = record.toList()
     assertThat(results).hasSize(names.size)
@@ -133,7 +136,7 @@ abstract class DatabaseCoreQueries {
     if (predicate != null) {
       builder.where(predicate)
     }
-    val record = builder.fetchOneInto(Long::class.java)
+    val record = builder.fetchOneInto(Long::class)
 
     assertThat(record).isNotNull()
     assertThat(record).isEqualTo(count.toLong())
@@ -149,7 +152,7 @@ abstract class DatabaseCoreQueries {
   @Test
   @DisplayName("Find one: should return null when id does not exist even if mapped")
   internal fun shouldReturnNullWhenIdDoesNotExistAndMapped() {
-    val result = underTest.byId(6545132132L, table).fetchOneInto(TestEntity::class.java)
+    val result = underTest.byId(6545132132L, table).fetchOneInto(TestEntity::class)
     assertThat(result).isNull()
   }
 
@@ -193,20 +196,20 @@ abstract class DatabaseCoreQueries {
   @Test
   @DisplayName("Persist: should increase count by 1")
   internal fun persistShouldIncreaseCountBy1() {
-    assertThat(underTest.selectCount(table).fetchSingleInto(Long::class.java)).isEqualTo(8L)
+    assertThat(underTest.selectCount(table).fetchSingleInto(Long::class)).isEqualTo(8L)
     underTest.persist(TestEntity(name = "Hello")).execute()
-    assertThat(underTest.selectCount(table).fetchSingleInto(Long::class.java)).isEqualTo(9L)
+    assertThat(underTest.selectCount(table).fetchSingleInto(Long::class)).isEqualTo(9L)
     assertThat(
       underTest.selectCount(table).where(
         name.eq("Hello")
-      ).fetchSingleInto(Long::class.java)
+      ).fetchSingleInto(Long::class)
     ).isEqualTo(1L)
   }
 
   @Test
   @DisplayName("PersistMany: should increase count by 4")
   internal fun persistShouldIncreaseCountBy2() {
-    assertThat(underTest.selectCount(table).fetchOneInto(Long::class.java)).isEqualTo(8L)
+    assertThat(underTest.selectCount(table).fetchOneInto(Long::class)).isEqualTo(8L)
     underTest.persistMany(
       arrayListOf(
         TestEntity(name = "Hello"),
@@ -215,11 +218,11 @@ abstract class DatabaseCoreQueries {
         TestEntity(name = "Hello")
       )
     ).execute()
-    assertThat(underTest.selectCount(table).fetchSingleInto(Long::class.java)).isEqualTo(12L)
+    assertThat(underTest.selectCount(table).fetchSingleInto(Long::class)).isEqualTo(12L)
     assertThat(
       underTest.selectCount(table).where(
         name.eq("Hello")
-      ).fetchSingleInto(Long::class.java)
+      ).fetchSingleInto(Long::class)
     ).isEqualTo(4L)
   }
 
@@ -231,7 +234,7 @@ abstract class DatabaseCoreQueries {
       .where(name.`in`("Miguél", "Michele") or name.eq("Miku"))
       .fetch()
 
-    val results = record.map { it.into(TestEntity::class.java) }.toList()
+    val results = record.map { it.into(TestEntity::class)!! }.toList()
     assertThat(results).hasSize(3)
     assertThat(results.map { it.name!! }).containsExactly("Miguél", "Michele", "Miku")
   }
@@ -244,7 +247,7 @@ abstract class DatabaseCoreQueries {
       .where(name.`in`("Miguél", "Michele") + name.eq("Michele"))
       .fetch()
 
-    val results = record.map { it.into(TestEntity::class.java) }.toList()
+    val results = record.map { it.into(TestEntity::class)!! }.toList()
     assertThat(results).hasSize(1)
     assertThat(results.map { it.name!! }).contains("Michele")
   }
@@ -257,7 +260,7 @@ abstract class DatabaseCoreQueries {
       .where(name.`in`("Miguél", "Michele") and name.eq("Michele"))
       .fetch()
 
-    val results = record.map { it.into(TestEntity::class.java) }.toList()
+    val results = record.map { it.into(TestEntity::class)!! }.toList()
     assertThat(results).hasSize(1)
     assertThat(results.map { it.name!! }).contains("Michele")
   }
@@ -272,7 +275,7 @@ abstract class DatabaseCoreQueries {
       .where(name.`in`("Miguél", "Michele"))
       .fetch()
 
-    val results = record.map { it.into(Boolean::class.java) }.toList()
+    val results = record.map { it.into(Boolean::class) }.toList()
     assertThat(results).hasSize(2)
     assertThat(results).isEqualTo(arrayListOf(false, true))
   }
@@ -284,7 +287,7 @@ abstract class DatabaseCoreQueries {
       .selectFrom(table)
       .where(name.`in`("Miguél", "Michele"))
       .fetch()
-      .map { it.into(TestEntity::class.java) }
+      .map { it.into(TestEntity::class)!! }
       .map { it.name }
 
     val results = HashSet<String>()
@@ -307,7 +310,7 @@ abstract class DatabaseCoreQueries {
     assertThat(affectedRows).isEqualTo(3)
     val countAfter = underTest.selectCount(table)
       .where(name.eq("Michelee"))
-      .fetchOneInto(Long::class.java)
+      .fetchOneInto(Long::class)
     assertThat(countAfter).isEqualTo(3)
   }
 
@@ -320,7 +323,7 @@ abstract class DatabaseCoreQueries {
 
     val countAfter = underTest.selectCount(table)
       .where(name.eq("Michelee"))
-      .fetchOneInto(Long::class.java)
+      .fetchOneInto(Long::class)
     assertThat(countAfter).isEqualTo(1)
   }
 
@@ -332,20 +335,20 @@ abstract class DatabaseCoreQueries {
 
     val countAfter = underTest.selectCount(table)
       .where(id.eq(mikuId))
-      .fetchOneInto(Long::class.java)
+      .fetchOneInto(Long::class)
     assertThat(countAfter).isEqualTo(0)
   }
 
   @Test
   @DisplayName("DeleteOne: should delete the provided Id")
   internal fun shouldDeleteTheProvidedId() {
-    val count = underTest.selectCount(table).fetchOneInto(Long::class.java)
+    val count = underTest.selectCount(table).fetchOneInto(Long::class)
     assertThat(count).isEqualTo(8)
     val idToDelete = underTest
       .selectFrom(table)
       .where(table.column<String>("name")!!.eq("Michele"))
       .fetchSingle()
-      .into(table.enclosingType)
+      .into(table.enclosingType)!!
       .id
 
     underTest.deleteById(idToDelete, table).execute()
@@ -353,7 +356,7 @@ abstract class DatabaseCoreQueries {
     val countAfter = underTest
       .selectCount(table)
       .where(id.eq(idToDelete))
-      .fetchSingleInto(Long::class.java)
+      .fetchSingleInto(Long::class)
 
     assertThat(countAfter).isEqualTo(0)
   }
@@ -361,11 +364,11 @@ abstract class DatabaseCoreQueries {
   @Test
   @DisplayName("DeleteOne: does nothing when the Id does not exists")
   internal fun shouldNotDeleteTheProvidedId() {
-    val count = underTest.selectCount(table).fetchOneInto(Long::class.java)
+    val count = underTest.selectCount(table).fetchOneInto(Long::class)
     assertThat(count).isEqualTo(8)
     underTest.deleteById(84651320L, table)
 
-    val countAfter = underTest.selectCount(table).fetchOneInto(Long::class.java)
+    val countAfter = underTest.selectCount(table).fetchOneInto(Long::class)
     assertThat(countAfter).isEqualTo(8)
   }
 
@@ -390,13 +393,13 @@ abstract class DatabaseCoreQueries {
   @Test
   @DisplayName("Select: requesting first page should return first 3 elements")
   internal fun testLimit() {
-    val table = TestEntity::class.java.table()
+    val table = TestEntity::class.table()
     val record = underTest
       .selectFrom(table)
       .limit(3)
       .fetch()
 
-    val results = record.map { it.into(TestEntity::class.java) }.toList()
+    val results = record.map { it.into(TestEntity::class)!! }.toList()
     assertThat(results).hasSize(3)
     assertThat(results.map { it.name!! }).isEqualTo(
       arrayListOf(
@@ -414,7 +417,7 @@ abstract class DatabaseCoreQueries {
       .offset(3)
       .fetch()
 
-    val results = record.map { it.into(TestEntity::class.java) }.toList()
+    val results = record.map { it.into(TestEntity::class)!! }.toList()
     assertThat(results).hasSize(3)
     assertThat(results.map { it.name!! }).isEqualTo(
       arrayListOf(
@@ -427,14 +430,14 @@ abstract class DatabaseCoreQueries {
   @DisplayName("Delete: should delete all the elements matching the query (2)")
   internal fun testDelete() {
     underTest.delete(table).where(fieldName.eq(27)).execute()
-    val count = underTest.selectCount(table).fetchOneInto(Long::class.java)
+    val count = underTest.selectCount(table).fetchOneInto(Long::class)
     assertThat(count).isEqualTo(5)
   }
 
   @Test
   @DisplayName("Select: test aliasing")
   internal fun testAliasing() {
-    val target = AliasedTestEntity::class.java
+    val target = AliasedTestEntity::class
     val result = underTest.select(name.`as`("user_name"), fieldName.`as`("login_count"))
       .from(table)
       .where(fieldName.eq(27) and name.isNotNull())
@@ -453,7 +456,7 @@ abstract class DatabaseCoreQueries {
 
     val column = jsonTable.column(TestJson::map)
     val idColumn = jsonTable.column(TestJson::id)
-    val id = underTest.insertInto(jsonTable).set(column, JsonObject(mapOf("a" to "b"))).returning(idColumn).fetchSingleInto(Int::class.java)
+    val id = underTest.insertInto(jsonTable).set(column, JsonObject(mapOf("a" to "b"))).returning(idColumn).fetchSingleInto(Int::class)
 
     val json = underTest
       .select()
@@ -466,7 +469,7 @@ abstract class DatabaseCoreQueries {
 
   @Test
   internal fun standardFetch() {
-    val count = underTest.fetch("select count(*) from test_entity").map { it.into(Long::class.java) }.toList().firstOrNull()
+    val count = underTest.fetch("select count(*) from test_entity").map { it.into(Long::class) }.toList().firstOrNull()
     assertThat(count).isEqualTo(8)
   }
 
@@ -475,7 +478,7 @@ abstract class DatabaseCoreQueries {
 
     val column = jsonTable.column(TestJson::relation)
     val idColumn = jsonTable.column(TestJson::id)
-    val id = underTest.insertInto(jsonTable).set(column, JsonArray(1, 2, 3)).returning(idColumn).fetchSingleInto(Int::class.java)
+    val id = underTest.insertInto(jsonTable).set(column, JsonArray(1, 2, 3)).returning(idColumn).fetchSingleInto(Int::class)
 
     val json = underTest
       .select()
@@ -486,9 +489,35 @@ abstract class DatabaseCoreQueries {
     assertThat(json.relation).isEqualTo(JsonArray(1, 2, 3))
   }
 
+  @Test
+  internal fun testDateSupport() {
+    val time = LocalTime.of(12, 34, 56)
+    val date = LocalDate.of(2021, Month.FEBRUARY, 14)
+    val dateTime = LocalDateTime.of(date, time)
+    val persistEntity = DateEntity(
+      null,
+      time,
+      date,
+      dateTime,
+      Date.from(dateTime.toInstant(ZoneOffset.UTC)),
+      Timestamp.valueOf(dateTime)
+    )
+    underTest.persist(persistEntity).execute()
+
+    val dateEntity = underTest.selectFrom(dateTable).fetchSingleInto()
+    assertThat(persistEntity.localTimeField).isEqualTo(dateEntity.localTimeField)
+    assertThat(persistEntity.localDateField).isEqualTo(dateEntity.localDateField)
+    assertThat(persistEntity.localDateTimeField).isEqualTo(dateEntity.localDateTimeField)
+    assertThat(persistEntity.javaDateField).isEqualTo(dateEntity.javaDateField)
+    assertThat(persistEntity.javaTimestampField).isEqualTo(dateEntity.javaTimestampField)
+  }
+
   companion object {
     @JvmStatic
     protected val table = TestEntity::class.table()
+
+    @JvmStatic
+    protected val dateTable = DateEntity::class.table()
 
     @JvmStatic
     protected val jsonTable = TestJson::class.table()

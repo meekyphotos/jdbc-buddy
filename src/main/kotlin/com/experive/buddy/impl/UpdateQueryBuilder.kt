@@ -8,7 +8,7 @@ import com.experive.buddy.steps.UpdateSetMoreStep
 import com.experive.buddy.steps.UpdateSetStep
 import org.springframework.jdbc.core.JdbcTemplate
 
-internal class UpdateQueryBuilder<R>(
+internal class UpdateQueryBuilder<R : Any>(
   private val tableInfo: TableInfo<R>,
   private val template: JdbcTemplate
 ) : UpdateSetStep<R>, UpdateSetMoreStep<R>, Update<R> {

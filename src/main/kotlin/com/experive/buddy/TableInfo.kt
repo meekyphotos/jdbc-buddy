@@ -4,7 +4,7 @@ import com.experive.buddy.impl.TableDetails
 import kotlin.reflect.KProperty
 
 
-class TableInfo<R>(private val details: TableDetails<R>) {
+class TableInfo<R : Any>(private val details: TableDetails<R>) {
   val enclosingType = details.entityClass
   val alias = details.alias
 
