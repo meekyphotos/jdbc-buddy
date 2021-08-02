@@ -2,7 +2,6 @@
 
 ![Coverage](https://sonar.experive.com/api/project_badges/measure?project=meekyphotos_jdbc-buddy&metric=coverage)
 ![Maintainability Rating](https://sonar.experive.com/api/project_badges/measure?project=meekyphotos_jdbc-buddy&metric=sqale_rating)
-![Quality Gate Status](https://sonar.experive.com/api/project_badges/measure?project=meekyphotos_jdbc-buddy&metric=alert_status)
 
 This is a simple SQL generator, uses Spring to manage execution and transactions via JdbcTemplate. Jdbc buddy leverages Kotlin idiomatic syntax to allow you to construct SQL leaving no chance to mistypings or problems arising from db entity
 refactorings.
