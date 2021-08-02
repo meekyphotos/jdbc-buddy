@@ -6,7 +6,7 @@
 
   <artifactId>jdbc-buddy</artifactId>
   <groupId>com.experive</groupId>
-  <version>1.3.0</version>
+  <version>1.3.2</version>
   <packaging>jar</packaging>
 
   <name>jdbc-buddy</name>
@@ -31,6 +31,19 @@
     <sourceDirectory>src/main/kotlin</sourceDirectory>
     <testSourceDirectory>src/test/kotlin</testSourceDirectory>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>3.2.1</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.jetbrains.kotlin</groupId>
         <artifactId>kotlin-maven-plugin</artifactId>
@@ -148,6 +161,7 @@
       <groupId>com.zaxxer</groupId>
       <artifactId>HikariCP</artifactId>
       <version>5.0.0</version>
+      <scope>provided</scope>
     </dependency>
 
     <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->

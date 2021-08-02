@@ -65,14 +65,14 @@ internal object Introspector {
       val java = it.java
       val name: String = normalizeTableName(java)
       val fields = java.declaredFields
-        .filter { !Modifier.isTransient(java.modifiers) }
+        .filter { f -> !Modifier.isTransient(f.modifiers) }
       val getter = java.declaredMethods
-        .filter { !Modifier.isStatic(java.modifiers) && (java.name.startsWith("get") || java.name.startsWith("is")) }
-        .filter { !Modifier.isTransient(java.modifiers) }
+        .filter { f -> !Modifier.isStatic(f.modifiers) && (f.name.startsWith("get") || f.name.startsWith("is")) }
+        .filter { f -> !Modifier.isTransient(f.modifiers) }
         .associateBy { cleanMethodName(java.name) }
       val staticGetterKt = java.declaredMethods
-        .filter { Modifier.isStatic(java.modifiers) && (java.name.startsWith("get") || java.name.startsWith("is")) }
-        .filter { !Modifier.isTransient(java.modifiers) }
+        .filter { f -> Modifier.isStatic(f.modifiers) && (f.name.startsWith("get") || f.name.startsWith("is")) }
+        .filter { f -> !Modifier.isTransient(f.modifiers) }
         .associateBy { cleanMethodName(java.name) }
       val columns = HashMap<String, ColumnDetails>()
       fields.forEach { field ->
