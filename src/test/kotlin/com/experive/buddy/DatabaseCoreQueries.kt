@@ -1,9 +1,9 @@
 package com.experive.buddy
 
-import com.beust.klaxon.JsonArray
-import com.beust.klaxon.JsonObject
 import com.experive.buddy.exceptions.NoDataFoundException
 import com.experive.buddy.exceptions.TooManyRowsException
+import com.experive.buddy.mapper.json
+import com.experive.buddy.mapper.jsonArray
 import com.experive.buddy.predicates.Predicate
 import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.DisplayName
@@ -456,7 +456,7 @@ abstract class DatabaseCoreQueries {
 
     val column = jsonTable.column(TestJson::map)
     val idColumn = jsonTable.column(TestJson::id)
-    val id = underTest.insertInto(jsonTable).set(column, JsonObject(mapOf("a" to "b"))).returning(idColumn).fetchSingleInto(Int::class)
+    val id = underTest.insertInto(jsonTable).set(column, json { put("a", "b") }).returning(idColumn).fetchSingleInto(Int::class)
 
     val json = underTest
       .select()
@@ -464,7 +464,7 @@ abstract class DatabaseCoreQueries {
       .where(idColumn eq id)
       .fetchSingleInto(jsonTable.enclosingType)
 
-    assertThat(json.map).isEqualTo(JsonObject(mapOf("a" to "b")))
+    assertThat(json.map).isEqualTo(json { put("a", "b") })
   }
 
   @Test
@@ -478,7 +478,7 @@ abstract class DatabaseCoreQueries {
 
     val column = jsonTable.column(TestJson::relation)
     val idColumn = jsonTable.column(TestJson::id)
-    val id = underTest.insertInto(jsonTable).set(column, JsonArray(1, 2, 3)).returning(idColumn).fetchSingleInto(Int::class)
+    val id = underTest.insertInto(jsonTable).set(column, jsonArray { add(1); add(2); add(3) }).returning(idColumn).fetchSingleInto(Int::class)
 
     val json = underTest
       .select()
@@ -486,7 +486,7 @@ abstract class DatabaseCoreQueries {
       .where(idColumn eq id)
       .fetchSingleInto(jsonTable.enclosingType)
 
-    assertThat(json.relation).isEqualTo(JsonArray(1, 2, 3))
+    assertThat(json.relation).isEqualTo(jsonArray { (1..3).forEach { add(it) } })
   }
 
   @Test

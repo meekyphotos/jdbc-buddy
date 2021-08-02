@@ -1,9 +1,8 @@
 package com.experive.buddy.dialect
 
-import com.beust.klaxon.JsonArray
-import com.beust.klaxon.JsonObject
-import com.beust.klaxon.Parser
 import com.experive.buddy.Expression
+import com.experive.buddy.mapper.SmartMapper
+import com.fasterxml.jackson.databind.JsonNode
 import org.postgresql.util.PGobject
 import java.sql.ResultSet
 import java.sql.Types
@@ -12,7 +11,7 @@ internal class PostgresDialect : Dialect {
   override fun supportReturning(): Boolean = true
 
   override fun emitPlaceholder(dt: Class<*>): String {
-    return if (dt == JsonObject::class.java || dt == JsonArray::class.java) {
+    return if (dt == JsonNode::class.java) {
       "?::jsonb"
     } else {
       "?"
@@ -36,12 +35,7 @@ internal class PostgresDialect : Dialect {
     return if (dataTypes[index] == Types.OTHER) {
       val obj = rs.getObject(index, PGobject::class.java)
       if (obj != null && obj.value != null) {
-        val str = StringBuilder(obj.value)
-        val parse = Parser.default().parse(str)
-        if (str.startsWith("{")) {
-          parse as JsonObject
-        } else
-          parse as JsonArray<*>
+        return SmartMapper.simpleMap(obj.value!!, JsonNode::class)
       } else {
         null
       }

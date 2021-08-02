@@ -22,6 +22,7 @@ object SmartMapper {
     DateToLocalDateTime,
     DateToLocalDate,
     StringToJsonNode,
+    ByteArrayToJsonNode,
     AnyToJsonNode,
     AnyToString,
   )
@@ -29,6 +30,10 @@ object SmartMapper {
   fun <I : Any, O : Any> modelMap(input: I, output: KClass<O>): O {
     val mapper = modelMappers.computeIfAbsent(output) { ModelMap(it) } as ModelMap<O>
     return mapper.map(input)
+  }
+
+  fun <I : Any, O : Any> simpleMap(input: I, output: KClass<O>): O? {
+    return adapters.firstOrNull { it.canAdapt(input::class, output) }?.adapt(input, output) as O?
   }
 
   fun <O : Any> modelMap(input: Map<String, Any?>, entityClass: KClass<O>): O {

@@ -1,15 +1,14 @@
 package com.experive.buddy.dialect
 
-import com.beust.klaxon.JsonArray
-import com.beust.klaxon.JsonObject
-import com.beust.klaxon.Parser
+import com.experive.buddy.mapper.SmartMapper
+import com.fasterxml.jackson.databind.JsonNode
 import java.sql.ResultSet
 import java.sql.Types
 
 internal class H2Dialect : Dialect {
 
   override fun emitPlaceholder(dt: Class<*>): String {
-    return if (dt == JsonObject::class.java || dt == JsonArray::class.java) {
+    return if (dt == JsonNode::class.java) {
       "? FORMAT JSON"
     } else {
       "?"
@@ -28,12 +27,7 @@ internal class H2Dialect : Dialect {
     if (dataTypes[index] == Types.OTHER) {
       val jsonAsByteArray = rs.getObject(index)
       return if (jsonAsByteArray != null && jsonAsByteArray is ByteArray) {
-        val str = StringBuilder(String(jsonAsByteArray))
-        val parse = Parser.default().parse(str)
-        if (str.startsWith("{")) {
-          parse as JsonObject
-        } else
-          parse as JsonArray<*>
+        return SmartMapper.simpleMap(jsonAsByteArray, JsonNode::class)
       } else {
         null
       }

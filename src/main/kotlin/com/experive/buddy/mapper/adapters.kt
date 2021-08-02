@@ -2,6 +2,8 @@ package com.experive.buddy.mapper
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ArrayNode
+import com.fasterxml.jackson.databind.node.ObjectNode
 import java.sql.Time
 import java.sql.Timestamp
 import java.time.LocalDate
@@ -54,4 +56,18 @@ internal val DateToLocalDate = adapter<Date, LocalDate> { java.sql.Date(it.time)
 internal val AnyToString = adapter<Any, String> { it.toString() }
 internal val objectMapper = ObjectMapper()
 internal val StringToJsonNode = adapter<String, JsonNode> { objectMapper.readTree(it) }
+internal val ByteArrayToJsonNode = adapter<ByteArray, JsonNode> { objectMapper.readTree(it) }
+internal val JsonNodeToString = adapter<JsonNode, String> { objectMapper.writeValueAsString(it) }
 internal val AnyToJsonNode = adapter<Any, JsonNode> { objectMapper.valueToTree(it) }
+
+fun json(init: ObjectNode.() -> Unit): JsonNode {
+  val node = objectMapper.createObjectNode()
+  init(node)
+  return node
+}
+
+fun jsonArray(init: ArrayNode.() -> Unit): JsonNode {
+  val node = objectMapper.createArrayNode()
+  init(node)
+  return node
+}

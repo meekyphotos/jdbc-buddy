@@ -1,7 +1,6 @@
 package com.experive.buddy
 
-import com.beust.klaxon.JsonArray
-import com.beust.klaxon.JsonObject
+import com.fasterxml.jackson.databind.JsonNode
 import java.sql.Timestamp
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -23,8 +22,8 @@ data class TestEntity(
 data class TestJson(
   @Id @GeneratedValue
   var id: Int? = null,
-  var map: JsonObject?,
-  var relation: JsonArray<Int>?
+  var map: JsonNode?,
+  var relation: JsonNode?
 )
 
 data class TestRelation(
