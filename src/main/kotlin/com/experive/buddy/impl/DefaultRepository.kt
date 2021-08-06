@@ -8,6 +8,7 @@ import com.experive.buddy.steps.InsertSetStep
 import com.experive.buddy.steps.SelectFromStep
 import com.experive.buddy.steps.UpdateSetStep
 import org.springframework.jdbc.core.JdbcTemplate
+import reactor.core.publisher.Flux
 import kotlin.reflect.KClass
 
 class DefaultRepository(private val template: JdbcTemplate) : Database {
@@ -40,7 +41,7 @@ class DefaultRepository(private val template: JdbcTemplate) : Database {
     return UpdateQueryBuilder(entityClass, template)
   }
 
-  override fun <R : Any> copyIn(entityClass: TableInfo<R>, values: Iterable<R>) {
+  override fun <R : Any> copyIn(entityClass: TableInfo<R>, values: Flux<R>) {
     CopyIn(template, entityClass).execute(values)
   }
 

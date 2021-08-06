@@ -4,6 +4,7 @@ import com.experive.buddy.impl.DefaultRepository
 import com.experive.buddy.impl.Introspector
 import com.experive.buddy.steps.*
 import org.springframework.jdbc.core.JdbcTemplate
+import reactor.core.publisher.Flux
 import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST")
@@ -100,7 +101,7 @@ interface Database {
    * Check official documentation for caveat: [https://www.postgresql.org/docs/current/sql-copy.html]
    * @since 1.4.0
    */
-  fun <R : Any> copyIn(entityClass: TableInfo<R>, values: Iterable<R>)
+  fun <R : Any> copyIn(entityClass: TableInfo<R>, values: Flux<R>)
 
   /**
    * Starts the creation of a deletion query

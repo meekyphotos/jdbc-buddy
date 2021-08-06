@@ -3,10 +3,16 @@ package com.experive.buddy.impl
 import com.experive.buddy.TableInfo
 import com.experive.buddy.mapper.writeJson
 import com.fasterxml.jackson.databind.JsonNode
+import org.apache.commons.pool2.BasePooledObjectFactory
+import org.apache.commons.pool2.PooledObject
+import org.apache.commons.pool2.impl.DefaultPooledObject
+import org.apache.commons.pool2.impl.GenericObjectPool
 import org.postgresql.copy.CopyManager
 import org.postgresql.core.BaseConnection
 import org.springframework.jdbc.core.ConnectionCallback
 import org.springframework.jdbc.core.JdbcTemplate
+import reactor.core.publisher.Flux
+import java.util.concurrent.CountDownLatch
 
 fun quote(appendable: Appendable, input: Any?) {
   when (input) {
@@ -44,7 +50,7 @@ fun quoteString(writer: Appendable, input: String) {
 
 class CopyIn<R : Any>(private val template: JdbcTemplate, private val entityClass: TableInfo<R>) {
 
-  fun execute(values: Iterable<R>) {
+  fun execute(values: Flux<R>) {
     template.execute(ConnectionCallback { conn ->
       val cm = CopyManager(conn.unwrap(BaseConnection::class.java))
       val sb = StringBuilder()
@@ -54,35 +60,45 @@ class CopyIn<R : Any>(private val template: JdbcTemplate, private val entityClas
       sb.append(") FROM STDIN WITH (FORMAT csv)")
       val copyIn = cm.copyIn(sb.toString())
       val size = columns.size
-      val lines = sequence {
-        val line = StringBuilder(51200)
-
-        for (r in values) {
-          line.setLength(0)
-          var i = 0
-          while (i < size) {
-            quote(line, columns[i].getValue(r))
-            if (i + 1 < size) {
-              line.append(',')
-            }
-            i++
-          }
-          line.append('\n')
-          yield(line.toString())
-        }
-      }
+      val buffers = GenericObjectPool(object : BasePooledObjectFactory<StringBuilder>() {
+        override fun create(): StringBuilder = StringBuilder(51200)
+        override fun wrap(obj: StringBuilder?): PooledObject<StringBuilder> = DefaultPooledObject(obj)
+      })
       val stringBuilder = StringBuilder(512000)
-      lines
-        .chunked(10000)
-        .forEach {
+      val countDownLatch = CountDownLatch(1)
+      values
+        .map { r ->
+          val line = buffers.borrowObject()
+          try {
+            line.setLength(0)
+            var i = 0
+            while (i < size) {
+              quote(line, columns[i].getValue(r))
+              if (i + 1 < size) {
+                line.append(',')
+              }
+              i++
+            }
+            line.append('\n')
+
+            line.toString()
+          } finally {
+            buffers.returnObject(line)
+          }
+        }
+        .buffer(10000)
+        .subscribe({
           stringBuilder.setLength(0)
           it.joinTo(stringBuilder, "")
           val linesToWrite = stringBuilder.toString().toByteArray()
           copyIn.writeToCopy(linesToWrite, 0, linesToWrite.size)
           copyIn.flushCopy()
+        }, null) {
+          copyIn.endCopy()
+          countDownLatch.countDown()
         }
 
-      copyIn.endCopy()
+      countDownLatch.await()
     })
 
   }
