@@ -1,10 +1,12 @@
 package com.experive.buddy
 
+import com.experive.buddy.benchmark.benchmark
 import com.experive.buddy.mapper.json
 import com.experive.buddy.support.BuddyPostgresExtension
 import com.fasterxml.jackson.databind.JsonNode
 import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
@@ -18,6 +20,7 @@ internal class PgsqlCoreDatabaseTest : DatabaseCoreQueries() {
     underTest.execute("create table if not exists test_relation (id serial primary key, test_id int, active boolean)")
     underTest.execute("create table if not exists test_json (id serial primary key, map jsonb, relation jsonb)")
     underTest.execute("create table if not exists date_entity (id serial primary key, local_time_field time, local_date_field date, local_date_time_field timestamp, java_date_field timestamp, java_timestamp_field timestamp)")
+    underTest.execute("create table if not exists geo_sample (id serial primary key, osm_id bigint, osm_type text, class text, type text, name jsonb, address jsonb)")
     underTest.persistMany(
       arrayListOf(
         TestEntity(null, "Miguél", 1, true),
@@ -94,6 +97,33 @@ internal class PgsqlCoreDatabaseTest : DatabaseCoreQueries() {
 
     assertThat(res.map { it.map!!.get("a").asText() }).isEqualTo(arrayListOf("3", "3"))
   }
+
+  @Test
+  internal fun testCopyIn() {
+    val sampleData = (0 until 1000).map { GeoSample(null, it.toLong(), "some", "class", "type", "{\"name:en\": \"some\" }", "{ \"addr:name\": \"lol\" }") }
+    underTest.copyIn(GeoSample::class.table(), sampleData)
+  }
+
+  @Test
+  @Tag("benchmark")
+  internal fun benchmarkCopy() {
+    val sampleData = (0 until 200_000).map { GeoSample(null, it.toLong(), "some", "class", "type", "{\"name:en\": \"some\" }", "{ \"addr:name\": \"lol\" }") }
+    benchmark(cleanUp = null, itemsInvolved = sampleData.size) {
+      underTest.copyIn(GeoSample::class.table(), sampleData)
+    }
+  }
+
+  @Test
+  @Tag("benchmark")
+  internal fun benchmarkInsertInto() {
+    val sampleData = (0 until 200_000).map { GeoSample(null, it.toLong(), "some", "class", "type", "{\"name:en\": \"some\" }", "{ \"addr:name\": \"lol\" }") }
+    benchmark(cleanUp = null, itemsInvolved = sampleData.size) {
+      underTest
+        .persistMany(sampleData)
+        .execute()
+    }
+  }
+  
 }
 
 

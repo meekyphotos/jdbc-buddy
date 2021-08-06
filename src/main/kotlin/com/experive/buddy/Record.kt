@@ -4,6 +4,9 @@ import com.experive.buddy.impl.Introspector
 import com.google.common.primitives.Primitives
 import kotlin.reflect.KClass
 
+/**
+ * A record as returned from the database
+ */
 data class Record(private val data: Map<String, Any>) {
   fun containsKey(key: String): Boolean {
     return data.containsKey(key)

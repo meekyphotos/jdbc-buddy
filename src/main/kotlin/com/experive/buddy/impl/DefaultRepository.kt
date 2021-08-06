@@ -40,6 +40,10 @@ class DefaultRepository(private val template: JdbcTemplate) : Database {
     return UpdateQueryBuilder(entityClass, template)
   }
 
+  override fun <R : Any> copyIn(entityClass: TableInfo<R>, values: Iterable<R>) {
+    CopyIn(template, entityClass).execute(values)
+  }
+
   override fun <R : Any> deleteFrom(entityClass: TableInfo<R>): DeleteWhereStep<R> {
     return DeleteQueryBuilder(entityClass, template)
   }

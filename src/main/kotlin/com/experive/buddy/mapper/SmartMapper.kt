@@ -23,6 +23,7 @@ object SmartMapper {
     DateToLocalDate,
     StringToJsonNode,
     ByteArrayToJsonNode,
+    JsonNodeToString,
     AnyToJsonNode,
     AnyToString,
   )

@@ -23,7 +23,7 @@ class BuddyPostgresExtension : GenericExtension(), AfterAllCallback {
   }
 
 
-  override fun beforeAll(context: ExtensionContext) {
+  override fun beforeAll(context: ExtensionContext?) {
     println("Starting docker container")
     container.withLogConsumer {
       val message = it.utf8String.trim()
@@ -34,7 +34,7 @@ class BuddyPostgresExtension : GenericExtension(), AfterAllCallback {
     super.beforeAll(context)
   }
 
-  override fun afterAll(context: ExtensionContext) {
+  override fun afterAll(context: ExtensionContext?) {
     container.stop()
   }
 }

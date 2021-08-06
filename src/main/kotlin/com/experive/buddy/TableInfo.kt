@@ -22,6 +22,7 @@ class TableInfo<R : Any>(private val details: TableDetails<R>) {
   }
 
   fun name() = details.name
+  fun insertableColumns() = details.insertableColumns
 
   fun <I> idColumn(): TableField<R, I>? {
     val column = details.idColumn

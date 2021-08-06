@@ -57,8 +57,12 @@ internal val AnyToString = adapter<Any, String> { it.toString() }
 internal val objectMapper = ObjectMapper()
 internal val StringToJsonNode = adapter<String, JsonNode> { objectMapper.readTree(it) }
 internal val ByteArrayToJsonNode = adapter<ByteArray, JsonNode> { objectMapper.readTree(it) }
-internal val JsonNodeToString = adapter<JsonNode, String> { objectMapper.writeValueAsString(it) }
+internal val JsonNodeToString = adapter<JsonNode, String> { writeJson(it) }
 internal val AnyToJsonNode = adapter<Any, JsonNode> { objectMapper.valueToTree(it) }
+
+fun writeJson(node: JsonNode): String {
+  return objectMapper.writeValueAsString(node)
+}
 
 fun json(init: ObjectNode.() -> Unit): JsonNode {
   val node = objectMapper.createObjectNode()
