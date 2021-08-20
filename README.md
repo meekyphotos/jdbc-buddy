@@ -1,4 +1,4 @@
-# JDBC Buddy
+4
 
 ![Coverage](https://sonar.experive.com/api/project_badges/measure?project=meekyphotos_jdbc-buddy&metric=coverage)
 ![Maintainability Rating](https://sonar.experive.com/api/project_badges/measure?project=meekyphotos_jdbc-buddy&metric=sqale_rating)
@@ -25,22 +25,28 @@ While you can use annotated entities to enable some reflection magic, this is no
 # Getting started
 
 ## Add dependency
+
 This package is hosted here on github.com, there add to your repositories section the following:
+
 ```xml
-  <repository>
-    <id>github</id>
-    <url>https://maven.pkg.github.com/meekyphotos/*</url>
-  </repository>
+
+<repository>
+  <id>github</id>
+  <url>https://maven.pkg.github.com/meekyphotos/*</url>
+</repository>
 ```
+
 Then in your dependencies:
 
 ```xml
+
 <dependency>
   <groupId>com.experive</groupId>
   <artifactId>jdbc-buddy</artifactId>
   <version>LATEST VERSION</version>
 </dependency>
 ```
+
 To get the latest version, check the release menu
 
 ## How to query
@@ -49,23 +55,23 @@ To get the latest version, check the release menu
 data class MyEntity(@Id val id: Int, val name: String?)
 
 fun main() {
-  // val jdbcTemplate: JdbcTemplate = ...
-  // instantiate or reference a repository
-  val repo = Database.using(jdbcTemplate)
+    // val jdbcTemplate: JdbcTemplate = ...
+    // instantiate or reference a repository
+    val repo = Database.using(jdbcTemplate)
 
-  // get reference of the table
-  val table = MyEntity::class.table()
+    // get reference of the table
+    val table = MyEntity::class.table()
 
-  // get reference of the column
-  val nameField = table.column(MyEntity::name)
+    // get reference of the column
+    val nameField = table.column(MyEntity::name)
 
-  // prepare and execute your query
-  val result = repo
-    .selectFrom(table)
-    .where(nameField eq "hello")
-    .fetchInto()
+    // prepare and execute your query
+    val result = repo
+        .selectFrom(table)
+        .where(nameField eq "hello")
+        .fetchInto()
 
-  // do something with results
+    // do something with results
 }
 
 ```

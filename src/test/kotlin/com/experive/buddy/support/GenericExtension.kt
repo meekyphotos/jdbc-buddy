@@ -1,6 +1,5 @@
 package com.experive.buddy.support
 
-
 import org.junit.jupiter.api.extension.AfterEachCallback
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.BeforeEachCallback
@@ -12,31 +11,29 @@ import org.springframework.transaction.TransactionStatus
 import javax.sql.DataSource
 
 abstract class GenericExtension : BeforeEachCallback, AfterEachCallback, BeforeAllCallback {
-  lateinit var jdbcTemplate: JdbcTemplate
-  private lateinit var txManager: JdbcTransactionManager
-  private lateinit var tx: TransactionStatus
-  override fun beforeEach(context: ExtensionContext?) {
-    context?.testInstance?.ifPresent {
-      it.javaClass.fields.filter { f ->
-        f.type.isAssignableFrom(JdbcTemplate::class.java)
-      }.forEach { f ->
-        f.isAccessible = true
-        f.set(it, jdbcTemplate)
-      }
+    private lateinit var jdbcTemplate: JdbcTemplate
+    private lateinit var txManager: JdbcTransactionManager
+    private lateinit var tx: TransactionStatus
+    override fun beforeEach(context: ExtensionContext?) {
+        context?.testInstance?.ifPresent {
+            it.javaClass.fields.filter { f ->
+                f.type.isAssignableFrom(JdbcTemplate::class.java)
+            }.forEach { f ->
+                f.isAccessible = true
+                f.set(it, jdbcTemplate)
+            }
+        }
+        tx = txManager.getTransaction(TransactionDefinition.withDefaults())
     }
-    tx = txManager.getTransaction(TransactionDefinition.withDefaults())
-  }
 
-  override fun afterEach(context: ExtensionContext?) {
-    txManager.rollback(tx)
-  }
+    override fun afterEach(context: ExtensionContext?) {
+        txManager.rollback(tx)
+    }
 
-  protected abstract fun dataSource(): DataSource
-  override fun beforeAll(context: ExtensionContext?) {
-    val dataSource = dataSource()
-    txManager = JdbcTransactionManager(dataSource)
-    jdbcTemplate = JdbcTemplate(dataSource)
-  }
-
-
+    protected abstract fun dataSource(): DataSource
+    override fun beforeAll(context: ExtensionContext?) {
+        val dataSource = dataSource()
+        txManager = JdbcTransactionManager(dataSource)
+        jdbcTemplate = JdbcTemplate(dataSource)
+    }
 }

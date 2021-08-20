@@ -9,29 +9,30 @@ import java.sql.Timestamp
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.util.*
+import java.util.Date
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.isSuperclassOf
 
 interface Adapter {
-  fun adapt(v: Any, desiredClass: KClass<*>): Any
-  fun canAdapt(source: KClass<*>, desiredClass: KClass<*>): Boolean
+    fun adapt(v: Any, desiredClass: KClass<*>): Any
+    fun canAdapt(source: KClass<*>, desiredClass: KClass<*>): Boolean
 }
 
 internal class IdentityAdapter : Adapter {
-  override fun adapt(v: Any, desiredClass: KClass<*>): Any = v
+    override fun adapt(v: Any, desiredClass: KClass<*>): Any = v
 
-  override fun canAdapt(source: KClass<*>, desiredClass: KClass<*>): Boolean = desiredClass.isSuperclassOf(source)
+    override fun canAdapt(source: KClass<*>, desiredClass: KClass<*>): Boolean = desiredClass.isSuperclassOf(source)
 }
 
 inline fun <reified A : Any, reified B : Any> adapter(crossinline adaptFn: (A) -> B): Adapter {
-  return object : Adapter {
-    override fun adapt(v: Any, desiredClass: KClass<*>): Any = adaptFn(v as A)
+    return object : Adapter {
+        override fun adapt(v: Any, desiredClass: KClass<*>): Any = adaptFn(v as A)
 
-    override fun canAdapt(source: KClass<*>, desiredClass: KClass<*>): Boolean = source.isSubclassOf(A::class) && desiredClass.isSuperclassOf(B::class)
-
-  }
+        override fun canAdapt(source: KClass<*>, desiredClass: KClass<*>): Boolean {
+            return source.isSubclassOf(A::class) && desiredClass.isSuperclassOf(B::class)
+        }
+    }
 }
 
 internal val NumberToLong = adapter<Number, Long> { it.toLong() }
@@ -61,17 +62,17 @@ internal val JsonNodeToString = adapter<JsonNode, String> { writeJson(it) }
 internal val AnyToJsonNode = adapter<Any, JsonNode> { objectMapper.valueToTree(it) }
 
 fun writeJson(node: JsonNode): String {
-  return objectMapper.writeValueAsString(node)
+    return objectMapper.writeValueAsString(node)
 }
 
 fun json(init: ObjectNode.() -> Unit): JsonNode {
-  val node = objectMapper.createObjectNode()
-  init(node)
-  return node
+    val node = objectMapper.createObjectNode()
+    init(node)
+    return node
 }
 
 fun jsonArray(init: ArrayNode.() -> Unit): JsonNode {
-  val node = objectMapper.createArrayNode()
-  init(node)
-  return node
+    val node = objectMapper.createArrayNode()
+    init(node)
+    return node
 }

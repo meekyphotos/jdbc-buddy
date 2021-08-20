@@ -7,16 +7,14 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 
 internal class NotTest {
-  @Test
-  @DisplayName("Not: prints the predicate")
-  internal fun printsPredicate() {
-    val table = TestEntity::class.table()
-    val field = table.column(TestEntity::name)
-    val underTest = Not(field eq "hello")
+    @Test
+    @DisplayName("Not: prints the predicate")
+    internal fun printsPredicate() {
+        val table = TestEntity::class.table()
+        val field = table.column(TestEntity::name)
+        val underTest = Not(field eq "hello")
 
-    assertThat(underTest.toSqlFragment()).isEqualTo("not (${table.alias}.name = ?)")
-    assertThat(underTest.collectValues()).isEqualTo(arrayListOf("hello"))
-  }
-
-
+        assertThat(underTest.toSqlFragment()).isEqualTo("not (${table.alias}.name = ?)")
+        assertThat(underTest.collectValues()).isEqualTo(arrayListOf("hello"))
+    }
 }

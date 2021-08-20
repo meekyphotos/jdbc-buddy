@@ -16,30 +16,32 @@ import java.util.function.Function
  * @see com.experive.buddy.impl.results.StreamQueryResult
  * @see com.experive.buddy.impl.results.SafeQueryResult
  */
-interface QueryResult<E> : Iterator<E> {
-  /**
-   * Collects the remaining items into a list
-   */
-  fun toList(): List<E> {
-    val e = ArrayList<E>()
-    this.forEachRemaining(e::add)
-    return e
-  }
+interface QueryResult<E> {
+    /**
+     * Collects the remaining items into a list
+     */
+    fun toList(): List<E> {
+        val e = ArrayList<E>()
+        while (hasNext()) {
+            e.add(next())
+        }
+        return e
+    }
 
-  /**
-   * Returns the next element in the iteration.
-   */
-  override operator fun next(): E
+    /**
+     * Returns the next element in the iteration.
+     */
+    operator fun next(): E
 
-  /**
-   * Returns `true` if the iteration has more elements.
-   */
-  override operator fun hasNext(): Boolean
+    /**
+     * Returns `true` if the iteration has more elements.
+     */
+    operator fun hasNext(): Boolean
 
-  /**
-   * Return a new query result in which elements returned by [next] are mapped by the [mapper] function.
-   *
-   * Items already returned by [next] won't be re-processed
-   */
-  fun <R> map(mapper: Function<in E, out R>): QueryResult<R> = DelegateQueryResult(this, mapper)
+    /**
+     * Return a new query result in which elements returned by [next] are mapped by the [mapper] function.
+     *
+     * Items already returned by [next] won't be re-processed
+     */
+    fun <R> map(mapper: Function<in E, out R>): QueryResult<R> = DelegateQueryResult(this, mapper)
 }
