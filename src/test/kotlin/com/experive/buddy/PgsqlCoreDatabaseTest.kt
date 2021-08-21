@@ -149,8 +149,7 @@ internal class PgsqlCoreDatabaseTest : DatabaseCoreQueries() {
             .runAll()
     }
 
-    private fun copy(sampleData: List<GeoSample>) {
-
+    fun copy(sampleData: List<GeoSample>) {
         underTest.copyIn(GeoSample::class.table(), Flux.fromIterable(sampleData))
     }
 }
