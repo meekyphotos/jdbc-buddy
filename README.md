@@ -1,5 +1,3 @@
-4
-
 ![Coverage](https://sonar.experive.com/api/project_badges/measure?project=meekyphotos_jdbc-buddy&metric=coverage)
 ![Maintainability Rating](https://sonar.experive.com/api/project_badges/measure?project=meekyphotos_jdbc-buddy&metric=sqale_rating)
 
